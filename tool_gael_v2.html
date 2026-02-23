@@ -1,0 +1,1255 @@
+<!DOCTYPE html>
+<!--
+  ╔══════════════════════════════════════════════════════════════════╗
+  ║  TOOL GAËL — Simple outil de calcul pour la Médecine Nucléaire        ║
+  ║                                                                 ║
+  ║  Copyright © Swiss Nuclear Doctors — Tous droits réservés       ║
+  ║  Développé par Gaël Amzalag                                     ║
+  ║                                                                 ║
+  ║  Ce logiciel est protégé par le droit d'auteur. Toute           ║
+  ║  reproduction, distribution, modification ou utilisation         ║
+  ║  non autorisée de tout ou partie de ce code est strictement     ║
+  ║  interdite sans l'accord écrit préalable de l'auteur.           ║
+  ║                                                                 ║
+  ║  This software is protected by copyright law. Any unauthorized  ║
+  ║  reproduction, distribution, modification or use of all or      ║
+  ║  part of this code is strictly prohibited without prior         ║
+  ║  written consent of the author.                                 ║
+  ╚══════════════════════════════════════════════════════════════════╝
+-->
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="theme-color" content="#1a5276">
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="icon-180.png">
+<title>TOOL GAËL - Médecine Nucléaire</title>
+<style>
+:root {
+  --primary: #1a5276;
+  --primary-light: #2980b9;
+  --accent: #e74c3c;
+  --bg: #f4f6f9;
+  --card: #ffffff;
+  --text: #2c3e50;
+  --text-light: #7f8c8d;
+  --border: #dce1e8;
+  --input-bg: #fff8f0;
+  --result-bg: #eaf7ea;
+  --normal: #27ae60;
+  --warning: #e67e22;
+  --danger: #e74c3c;
+  --auto-bg: #e8f0fe;
+  --auto-border: #4a90d9;
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+input, select, button { max-width: 100%; box-sizing: border-box; }
+.form-group { overflow: hidden; }
+
+body {
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  min-height: 100vh;
+}
+
+header {
+  background: linear-gradient(135deg, var(--primary), var(--primary-light));
+  color: white;
+  padding: 1.2rem 2rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+}
+
+header h1 { font-size: 1.5rem; font-weight: 600; }
+header .subtitle { font-size: 0.85rem; opacity: 0.85; }
+header .version { font-size: 0.75rem; opacity: 0.6; }
+
+nav {
+  background: white;
+  border-bottom: 1px solid var(--border);
+  padding: 0 1rem;
+  display: flex;
+  gap: 0;
+  overflow-x: auto;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+}
+
+nav button {
+  padding: 0.8rem 1.2rem;
+  border: none;
+  background: none;
+  cursor: pointer;
+  font-size: 0.9rem;
+  color: var(--text-light);
+  border-bottom: 3px solid transparent;
+  transition: all 0.2s;
+  white-space: nowrap;
+  font-weight: 500;
+}
+
+nav button:hover { color: var(--primary); background: #f0f4f8; }
+nav button.active {
+  color: var(--primary);
+  border-bottom-color: var(--primary);
+  font-weight: 600;
+}
+
+.module { display: none; padding: 1.5rem 2rem; max-width: 1024px; margin: 0 auto; }
+.module.active { display: block; }
+
+.module h2 {
+  font-size: 1.3rem;
+  color: var(--primary);
+  margin-bottom: 0.3rem;
+}
+
+.module .description {
+  color: var(--text-light);
+  font-size: 0.9rem;
+  margin-bottom: 1.5rem;
+}
+
+.card {
+  background: var(--card);
+  border-radius: 8px;
+  padding: 1.2rem 1.5rem;
+  margin-bottom: 1rem;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.06);
+  border: 1px solid var(--border);
+  position: relative;
+  overflow: hidden;
+  max-width: 100%;
+}
+
+.card h3 {
+  font-size: 1rem;
+  color: var(--primary);
+  margin-bottom: 0.8rem;
+  padding-bottom: 0.4rem;
+  border-bottom: 1px solid var(--border);
+}
+
+.form-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.8rem 1.5rem;
+}
+
+.form-group { display: flex; flex-direction: column; gap: 0.3rem; }
+.form-group.full { grid-column: 1 / -1; }
+
+.form-group label {
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: var(--text);
+}
+
+.form-group label .unit {
+  font-weight: 400;
+  color: var(--text-light);
+}
+
+.form-group input, .form-group select {
+  width: 100%;
+  min-width: 0;
+  padding: 0.5rem 0.7rem;
+  border: 1.5px solid var(--border);
+  border-radius: 5px;
+  font-size: 0.95rem;
+  background: var(--input-bg);
+  transition: border-color 0.2s;
+}
+
+.form-group input:focus, .form-group select:focus {
+  outline: none;
+  border-color: var(--primary-light);
+  box-shadow: 0 0 0 3px rgba(41,128,185,0.1);
+}
+
+.form-group input[readonly] {
+  background: #f0f0f0;
+  color: var(--text-light);
+}
+
+/* Auto-populated field style */
+.form-group input.auto-filled {
+  background: var(--auto-bg);
+  border-color: var(--auto-border);
+  font-weight: 600;
+}
+
+.auto-tag {
+  font-size: 0.65rem;
+  color: var(--auto-border);
+  font-weight: 400;
+  font-style: italic;
+}
+
+.results-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.8rem 1.5rem;
+}
+
+.result-item {
+  background: var(--result-bg);
+  padding: 0.8rem 1rem;
+  border-radius: 6px;
+  border-left: 4px solid var(--normal);
+}
+
+.result-item.full { grid-column: 1 / -1; }
+
+.result-item .label {
+  font-size: 0.78rem;
+  color: var(--text-light);
+  margin-bottom: 0.2rem;
+}
+
+.result-item .value {
+  font-size: 1.3rem;
+  font-weight: 700;
+  color: var(--primary);
+}
+
+.result-item .norm {
+  font-size: 0.75rem;
+  color: var(--text-light);
+  margin-top: 0.2rem;
+}
+
+.result-item.warning { border-left-color: var(--warning); }
+.result-item.warning .value { color: var(--warning); }
+.result-item.danger { border-left-color: var(--danger); }
+.result-item.danger .value { color: var(--danger); }
+
+.btn {
+  padding: 0.6rem 1.5rem;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  font-size: 0.9rem;
+  font-weight: 600;
+  transition: all 0.2s;
+}
+
+.btn-primary {
+  background: var(--primary);
+  color: white;
+}
+.btn-primary:hover { background: var(--primary-light); }
+
+.btn-secondary {
+  background: #ecf0f1;
+  color: var(--text);
+}
+.btn-secondary:hover { background: #dce1e8; }
+
+.btn-row {
+  display: flex;
+  gap: 0.8rem;
+  margin-top: 1rem;
+}
+
+.patient-info {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.8rem;
+}
+
+.patient-info-3 {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 0.8rem;
+}
+
+.norms-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.85rem;
+  margin-top: 0.5rem;
+}
+
+.norms-table th, .norms-table td {
+  padding: 0.4rem 0.7rem;
+  border: 1px solid var(--border);
+  text-align: left;
+}
+
+.norms-table th {
+  background: #f0f4f8;
+  font-weight: 600;
+  color: var(--primary);
+}
+
+.norms-table td:last-child { text-align: center; }
+
+.three-col { grid-template-columns: 1fr 1fr 1fr; }
+
+.separator {
+  border: none;
+  border-top: 1px solid var(--border);
+  margin: 1rem 0;
+}
+
+/* Grossesse contra-indication overlay */
+.thy-disabled {
+  opacity: 0.35;
+  pointer-events: none;
+  position: relative;
+}
+
+.thy-disabled::after {
+  content: "CONTRE-INDICATION — GROSSESSE";
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: var(--danger);
+  background: rgba(255,255,255,0.85);
+  padding: 0.5rem 1.5rem;
+  border: 2px solid var(--danger);
+  border-radius: 6px;
+  white-space: nowrap;
+  z-index: 10;
+}
+
+/* OFSP status colors */
+.ofsp-ambulatoire { border-left-color: var(--normal); color: var(--normal); }
+.ofsp-derogation { border-left-color: var(--warning); color: var(--warning); }
+.ofsp-hospitalisation { border-left-color: var(--danger); color: var(--danger); }
+
+/* Marinelli formula box */
+.formula-box {
+  background: #f8f9fb;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 0.8rem 1rem;
+  font-size: 0.82rem;
+  line-height: 1.6;
+}
+
+.formula-box .formula-title {
+  font-weight: 700;
+  color: var(--primary);
+  margin-bottom: 0.4rem;
+  font-size: 0.88rem;
+}
+
+.formula-box .formula-main {
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: var(--text);
+  text-align: center;
+  margin: 0.5rem 0;
+  padding: 0.4rem;
+  background: white;
+  border-radius: 4px;
+}
+
+.formula-box .formula-legend {
+  color: var(--text-light);
+  font-size: 0.78rem;
+}
+
+.formula-box .formula-legend span {
+  color: var(--text);
+  font-weight: 600;
+}
+
+/* No-print utility */
+.no-print { }
+
+/* Print styles - compact 1 page */
+@media print {
+  @page { margin: 8mm; size: A4; }
+  body { font-size: 9pt; background: white; }
+  nav { display: none !important; }
+  .no-print { display: none !important; }
+  header { padding: 0.3rem 0.8rem; }
+  header h1 { font-size: 1.1rem; }
+  .module { display: none !important; padding: 0.5rem 0.8rem; }
+  .module.active { display: block !important; }
+  .btn-row { display: none !important; }
+  .card { padding: 0.5rem 0.7rem; margin-bottom: 0.4rem; box-shadow: none; border: 1px solid #ccc; }
+  .card h3 { font-size: 0.85rem; margin-bottom: 0.3rem; padding-bottom: 0.2rem; }
+  .form-grid, .results-grid { gap: 0.3rem 0.8rem; }
+  .form-group label { font-size: 0.72rem; }
+  .form-group input, .form-group select { font-size: 0.8rem; padding: 0.2rem 0.4rem; border: 1px solid #999; }
+  .result-item { padding: 0.3rem 0.5rem; }
+  .result-item .value { font-size: 1rem; }
+  .result-item .label { font-size: 0.7rem; }
+  .result-item .norm { font-size: 0.65rem; }
+  .norms-table { font-size: 0.72rem; }
+  .norms-table th, .norms-table td { padding: 0.15rem 0.4rem; }
+  .separator { margin: 0.4rem 0; }
+  .formula-box { padding: 0.4rem 0.6rem; font-size: 0.72rem; }
+  .formula-box .formula-main { font-size: 0.88rem; margin: 0.2rem 0; padding: 0.2rem; }
+  .formula-box .formula-legend { font-size: 0.68rem; }
+  .patient-info, .patient-info-3 { gap: 0.3rem; }
+  .module h2 { font-size: 1rem; margin-bottom: 0.1rem; }
+  .module .description { font-size: 0.75rem; margin-bottom: 0.5rem; }
+  .three-col { grid-template-columns: 1fr 1fr 1fr; }
+}
+
+@media (max-width: 700px) {
+  header { flex-direction: column; gap: 0.5rem; padding: 0.8rem 1rem; text-align: center; }
+  header > div[style*="text-align:right"] { text-align: center; }
+  header h1 { font-size: 1.2rem; }
+  body { overflow-x: hidden; }
+  .module { padding: 0.3rem; max-width: 100%; overflow-x: hidden; }
+  .card { padding: 0.5rem; margin-bottom: 0.5rem; margin-left: 0; margin-right: 0; border-radius: 6px; }
+  .form-grid, .results-grid, .patient-info, .patient-info-3 { grid-template-columns: 1fr; gap: 0.4rem; max-width: 100%; }
+  .form-grid.three-col { grid-template-columns: auto 1fr 1fr !important; gap: 0.3rem 0.4rem; }
+  .form-grid.three-col .form-group label { white-space: nowrap; font-size: 0.68rem; }
+  .results-grid.three-col { grid-template-columns: 1fr !important; }
+  .form-group.full, .result-item.full { grid-column: 1; }
+  .form-group { max-width: 100%; }
+  .form-group label { font-size: 0.72rem; }
+  .form-group input, .form-group select { font-size: 0.8rem; padding: 0.3rem 0.4rem; width: 100%; max-width: 100%; }
+  input[type="date"] { -webkit-appearance: none; appearance: none; }
+  nav { padding: 0 0.3rem; }
+  nav button { padding: 0.5rem 0.6rem; font-size: 0.72rem; }
+  .btn-row { flex-wrap: wrap; }
+  .btn { padding: 0.5rem 1rem; font-size: 0.82rem; }
+  .norms-table { font-size: 0.75rem; }
+  .formula-box { padding: 0.3rem 0.5rem !important; }
+  .formula-main { font-size: 0.8rem !important; }
+  .formula-legend { font-size: 0.62rem !important; }
+  h2 { font-size: 1rem; }
+  h3 { font-size: 0.9rem; }
+  .description { font-size: 0.78rem; }
+  /* Stack the 2-column thyroid layout on small screens */
+  #mod-thyroide > div[style*="display:flex"] { flex-direction: column !important; }
+  #mod-thyroide > div[style*="display:flex"] > .card { flex: 1 1 auto !important; }
+}
+</style>
+</head>
+<body>
+
+<header>
+  <div style="display:flex; align-items:center; gap:0.8rem;">
+    <svg width="36" height="36" viewBox="0 0 600 600" xmlns="http://www.w3.org/2000/svg" style="border-radius:4px; flex-shrink:0;">
+      <rect width="600" height="600" fill="#E60000"/>
+      <g transform="translate(300 300)">
+        <g stroke="white" stroke-width="12" fill="none">
+          <ellipse rx="282" ry="150"/>
+          <ellipse rx="282" ry="150" transform="rotate(60)"/>
+          <ellipse rx="282" ry="150" transform="rotate(120)"/>
+        </g>
+        <g>
+          <rect x="-45" y="-125" width="90" height="250" fill="white"/>
+          <rect x="-125" y="-45" width="250" height="90" fill="white"/>
+          <animateTransform attributeName="transform" type="scale" values="1;1.08;1" dur="1.0s" repeatCount="indefinite"/>
+        </g>
+        <defs><circle id="e" r="12" fill="white"/></defs>
+        <g>
+          <use href="#e"><animateMotion dur="1.5s" begin="0s" repeatCount="indefinite" path="M282 0 A282 150 0 1 1 -282 0 A282 150 0 1 1 282 0"/></use>
+          <use href="#e"><animateMotion dur="1.9s" begin="0.5s" repeatCount="indefinite" path="M282 0 A282 150 0 1 0 -282 0 A282 150 0 1 0 282 0"/></use>
+          <use href="#e"><animateMotion dur="1.7s" begin="0.8s" repeatCount="indefinite" path="M282 0 A282 150 0 1 1 -282 0 A282 150 0 1 1 282 0"/></use>
+        </g>
+        <g transform="rotate(60)">
+          <use href="#e"><animateMotion dur="1.6s" begin="0.3s" repeatCount="indefinite" path="M282 0 A282 150 0 1 0 -282 0 A282 150 0 1 0 282 0"/></use>
+          <use href="#e"><animateMotion dur="1.4s" begin="1.1s" repeatCount="indefinite" path="M282 0 A282 150 0 1 1 -282 0 A282 150 0 1 1 282 0"/></use>
+          <use href="#e"><animateMotion dur="2.0s" begin="0.6s" repeatCount="indefinite" path="M282 0 A282 150 0 1 0 -282 0 A282 150 0 1 0 282 0"/></use>
+        </g>
+        <g transform="rotate(120)">
+          <use href="#e"><animateMotion dur="1.8s" begin="0.4s" repeatCount="indefinite" path="M282 0 A282 150 0 1 1 -282 0 A282 150 0 1 1 282 0"/></use>
+          <use href="#e"><animateMotion dur="1.3s" begin="0.9s" repeatCount="indefinite" path="M282 0 A282 150 0 1 0 -282 0 A282 150 0 1 0 282 0"/></use>
+          <use href="#e"><animateMotion dur="1.5s" begin="0.2s" repeatCount="indefinite" path="M282 0 A282 150 0 1 1 -282 0 A282 150 0 1 1 282 0"/></use>
+        </g>
+      </g>
+    </svg>
+    <div>
+      <h1>TOOL GAËL</h1>
+      <div class="subtitle">Simple outil de calcul pour la Médecine Nucléaire</div>
+    </div>
+  </div>
+  <div style="text-align:right">
+    <div class="version">Développé par Gaël Amzalag</div>
+    <div class="version">© Swiss Nuclear Doctors</div>
+  </div>
+</header>
+
+<nav id="nav">
+  <button class="active" onclick="showModule('thyroide')">Thyroïde I-131</button>
+  <button onclick="showModule('hbs')">HBS Hépatique</button>
+  <button onclick="showModule('herder')">Herder (NPS)</button>
+  <button onclick="showModule('dmsa')">DMSA</button>
+  <button onclick="showModule('mag3')">MAG3</button>
+  <button onclick="showModule('datscan')">DaTSCAN</button>
+  <button onclick="showModule('shunt_simple')">Shunt Cérébral</button>
+  <button onclick="showModule('shunt_sirt')">Shunt Pulmonaire</button>
+</nav>
+
+<!-- ==================== DMSA ==================== -->
+<div id="mod-dmsa" class="module">
+  <h2>Scintigraphie Rénale Corticale au DMSA</h2>
+  <p class="description">Fonctions rénales relatives par moyenne géométrique</p>
+
+  <div class="card">
+    <h3>Informations Patient</h3>
+    <div class="patient-info">
+      <div class="form-group"><label>ID PATIENT (NIP)</label><input type="text" id="dmsa-ipp"></div>
+      <div class="form-group"><label>Date de l'examen</label><input type="date" id="dmsa-date"></div>
+    </div>
+  </div>
+
+  <div class="card">
+    <h3>Données d'acquisition (counts)</h3>
+    <p style="font-size:0.78rem; color:var(--text-light); margin-bottom:0.5rem; font-style:italic;">⚠ Les ROI doivent être identiques entre AP et PA (copier/coller en miroir), sinon les résultats seront faux.</p>
+    <div class="form-grid">
+      <div></div>
+      <div style="display:flex; gap:0.5rem; font-weight:600; font-size:0.85rem; color:var(--primary); padding-bottom:0.2rem;">
+        <span style="flex:1; text-align:center">ROI PA (postérieur)</span>
+        <span style="flex:1; text-align:center">ROI AP (antérieur)</span>
+      </div>
+      <div class="form-group">
+        <label>Rein Gauche</label>
+      </div>
+      <div style="display:flex; gap:0.4rem;">
+        <div class="form-group" style="flex:1"><input type="number" id="dmsa-rg-pa" oninput="calcDMSA()"></div>
+        <div class="form-group" style="flex:1"><input type="number" id="dmsa-rg-ap" oninput="calcDMSA()"></div>
+      </div>
+      <div class="form-group">
+        <label>Rein Droit</label>
+      </div>
+      <div style="display:flex; gap:0.4rem;">
+        <div class="form-group" style="flex:1"><input type="number" id="dmsa-rd-pa" oninput="calcDMSA()"></div>
+        <div class="form-group" style="flex:1"><input type="number" id="dmsa-rd-ap" oninput="calcDMSA()"></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <h3>Résultats</h3>
+    <div class="results-grid">
+      <div class="result-item" id="dmsa-res-rg">
+        <div class="label">Rein Gauche</div>
+        <div class="value" id="dmsa-val-rg">-</div>
+        <div class="norm">Norme : 45% - 55%</div>
+      </div>
+      <div class="result-item" id="dmsa-res-rd">
+        <div class="label">Rein Droit</div>
+        <div class="value" id="dmsa-val-rd">-</div>
+        <div class="norm">Norme : 45% - 55%</div>
+      </div>
+    </div>
+    <div class="btn-row">
+      <button class="btn btn-primary" onclick="calcDMSA()">Calculer</button>
+      <button class="btn btn-secondary" onclick="resetModule('dmsa')">Réinitialiser</button>
+      <button class="btn btn-secondary" onclick="window.print()">Imprimer</button>
+    </div>
+  </div>
+</div>
+
+<!-- ==================== MAG3 ==================== -->
+<div id="mod-mag3" class="module">
+  <h2>Scintigraphie Rénale Dynamique au MAG3</h2>
+  <p class="description">Indices d'élimination rénaux aux différents temps de l'examen dynamique</p>
+
+  <div class="card">
+    <h3>Informations Patient</h3>
+    <div class="patient-info">
+      <div class="form-group"><label>ID PATIENT (NIP)</label><input type="text" id="mag3-ipp"></div>
+      <div class="form-group"><label>Date de l'examen</label><input type="date" id="mag3-date"></div>
+    </div>
+  </div>
+
+  <div class="card">
+    <h3>Données d'acquisition (counts/sec)</h3>
+    <div class="form-grid three-col">
+      <div></div>
+      <div style="font-weight:600; font-size:0.85rem; color:var(--primary); text-align:center; white-space:nowrap">R. Droit</div>
+      <div style="font-weight:600; font-size:0.85rem; color:var(--primary); text-align:center; white-space:nowrap">R. Gauche</div>
+
+      <div class="form-group"><label>Cts/sec max</label></div>
+      <div class="form-group"><input type="number" id="mag3-rd-max" oninput="calcMAG3()"></div>
+      <div class="form-group"><input type="number" id="mag3-rg-max" oninput="calcMAG3()"></div>
+
+      <div class="form-group"><label>Cts/sec 20 min</label></div>
+      <div class="form-group"><input type="number" id="mag3-rd-20" oninput="calcMAG3()"></div>
+      <div class="form-group"><input type="number" id="mag3-rg-20" oninput="calcMAG3()"></div>
+
+      <div class="form-group"><label>Cts/sec fin exam.</label></div>
+      <div class="form-group"><input type="number" id="mag3-rd-end" oninput="calcMAG3()"></div>
+      <div class="form-group"><input type="number" id="mag3-rg-end" oninput="calcMAG3()"></div>
+    </div>
+  </div>
+
+  <div class="card">
+    <h3>Résultats</h3>
+    <div class="results-grid">
+      <div class="result-item">
+        <div class="label">Élimination à 20 min - Rein Droit</div>
+        <div class="value" id="mag3-val-rd20">-</div>
+        <div class="norm">Norme : > 70%</div>
+      </div>
+      <div class="result-item">
+        <div class="label">Élimination à 20 min - Rein Gauche</div>
+        <div class="value" id="mag3-val-rg20">-</div>
+        <div class="norm">Norme : > 70%</div>
+      </div>
+      <div class="result-item">
+        <div class="label">Élimination 20-40 min - Rein Droit</div>
+        <div class="value" id="mag3-val-rd40">-</div>
+        <div class="norm">Norme : > 40%</div>
+      </div>
+      <div class="result-item">
+        <div class="label">Élimination 20-40 min - Rein Gauche</div>
+        <div class="value" id="mag3-val-rg40">-</div>
+        <div class="norm">Norme : > 40%</div>
+      </div>
+      <div class="result-item">
+        <div class="label">Élimination fin d'examen - Rein Droit</div>
+        <div class="value" id="mag3-val-rdend">-</div>
+      </div>
+      <div class="result-item">
+        <div class="label">Élimination fin d'examen - Rein Gauche</div>
+        <div class="value" id="mag3-val-rgend">-</div>
+      </div>
+    </div>
+    <div class="formula-box no-print" style="padding:0.5rem 0.8rem; margin-top:0.8rem; font-size:0.72rem; line-height:1.5;">
+      <div style="font-weight:600; color:var(--primary); margin-bottom:0.2rem;">Références — Valeurs normales</div>
+      <div style="color:var(--text-light);">
+        • Indice d'élimination à 20 min (1 − counts<sub>20min</sub>/counts<sub>max</sub>) : norme &gt; 70% — ratio 20min/max cortical moyen = 0.19 ± 0.07<br>
+        <span style="font-style:italic;">Esteves FP, Taylor A et al. 99mTc-MAG3 Renography: Normal Values for MAG3 Clearance and Curve Parameters, Excretory Parameters, and Residual Urine Volume. AJR 2006;187:W610-W617</span><br>
+        • NORA (Normalized Residual Activity) à 20 min : 90<sup>e</sup> percentile = 0.70<br>
+        <span style="font-style:italic;">Piepsz A, Tondeur M, Ham H. Normalized Residual Activity: Usual Values and Robustness of the Method. J Nucl Med 2002;43:33-38</span><br>
+        • Guidelines : <span style="font-style:italic;">Blaufox MD, De Palma D, Taylor A et al. The SNMMI and EANM Practice Guideline for Renal Scintigraphy in Adults. Eur J Nucl Med Mol Imaging 2018;45:2218-2228</span>
+      </div>
+    </div>
+    <div class="btn-row">
+      <button class="btn btn-primary" onclick="calcMAG3()">Calculer</button>
+      <button class="btn btn-secondary" onclick="resetModule('mag3')">Réinitialiser</button>
+      <button class="btn btn-secondary" onclick="window.print()">Imprimer</button>
+    </div>
+  </div>
+</div>
+
+<!-- ==================== DATSCAN ==================== -->
+<div id="mod-datscan" class="module">
+  <h2>DaTSCAN</h2>
+  <p class="description">Index de Captation Striatale (ICS)</p>
+
+  <div class="card">
+    <h3>Informations Patient</h3>
+    <div class="patient-info">
+      <div class="form-group"><label>ID PATIENT (NIP)</label><input type="text" id="datscan-ipp"></div>
+      <div class="form-group"><label>Date de l'examen</label><input type="date" id="datscan-date"></div>
+    </div>
+  </div>
+
+  <div class="card">
+    <h3>Données d'acquisition (counts)</h3>
+    <div class="form-grid three-col">
+      <div></div>
+      <div style="font-weight:600; font-size:0.85rem; color:var(--primary); text-align:center">ROI Droit</div>
+      <div style="font-weight:600; font-size:0.85rem; color:var(--primary); text-align:center">ROI Gauche</div>
+
+      <div class="form-group"><label>Noyau Caudé</label></div>
+      <div class="form-group"><input type="number" id="datscan-caude-d" oninput="calcDatscan()"></div>
+      <div class="form-group"><input type="number" id="datscan-caude-g" oninput="calcDatscan()"></div>
+
+      <div class="form-group"><label>Putamen</label></div>
+      <div class="form-group"><input type="number" id="datscan-putamen-d" oninput="calcDatscan()"></div>
+      <div class="form-group"><input type="number" id="datscan-putamen-g" oninput="calcDatscan()"></div>
+
+      <div class="form-group"><label>Corps Striés</label></div>
+      <div class="form-group"><input type="number" id="datscan-stries-d" oninput="calcDatscan()"></div>
+      <div class="form-group"><input type="number" id="datscan-stries-g" oninput="calcDatscan()"></div>
+
+      <div class="form-group"><label>Occiput (référence)</label></div>
+      <div class="form-group"><input type="number" id="datscan-occiput" oninput="calcDatscan()"></div>
+      <div></div>
+    </div>
+  </div>
+
+  <div class="card">
+    <h3>Résultats - Index de Captation Striatale (ICS)</h3>
+    <div class="results-grid">
+      <div class="result-item">
+        <div class="label">ICS Noyau Caudé Droit</div>
+        <div class="value" id="datscan-val-caude-d">-</div>
+        <div class="norm">Norme : > 2.2</div>
+      </div>
+      <div class="result-item">
+        <div class="label">ICS Noyau Caudé Gauche</div>
+        <div class="value" id="datscan-val-caude-g">-</div>
+        <div class="norm">Norme : > 2.2</div>
+      </div>
+      <div class="result-item">
+        <div class="label">ICS Putamen Droit</div>
+        <div class="value" id="datscan-val-putamen-d">-</div>
+        <div class="norm">Norme : > 1.5</div>
+      </div>
+      <div class="result-item">
+        <div class="label">ICS Putamen Gauche</div>
+        <div class="value" id="datscan-val-putamen-g">-</div>
+        <div class="norm">Norme : > 1.5</div>
+      </div>
+      <div class="result-item">
+        <div class="label">ICS Corps Striés Droit</div>
+        <div class="value" id="datscan-val-stries-d">-</div>
+        <div class="norm">Norme : > 1.8</div>
+      </div>
+      <div class="result-item">
+        <div class="label">ICS Corps Striés Gauche</div>
+        <div class="value" id="datscan-val-stries-g">-</div>
+        <div class="norm">Norme : > 1.8</div>
+      </div>
+    </div>
+    <div class="btn-row">
+      <button class="btn btn-primary" onclick="calcDatscan()">Calculer</button>
+      <button class="btn btn-secondary" onclick="resetModule('datscan')">Réinitialiser</button>
+      <button class="btn btn-secondary" onclick="window.print()">Imprimer</button>
+    </div>
+  </div>
+</div>
+
+<!-- ==================== THYROIDE ==================== -->
+<div id="mod-thyroide" class="module active">
+  <h2>Traitement I-131 — Pathologies thyroïdiennes bénignes (non tumorales)</h2>
+  <p class="description">Calcul d'activité par la formule de Marinelli (méthode dosimétrique)</p>
+
+  <div class="card">
+    <h3>Informations Patient &amp; Contexte Clinique</h3>
+    <div class="patient-info-3">
+      <div class="form-group"><label>ID PATIENT (NIP)</label><input type="text" id="thy-ipp"></div>
+      <div class="form-group"><label>Date de l'examen</label><input type="date" id="thy-date"></div>
+      <div class="form-group"><label>Médecin prescripteur</label><input type="text" id="thy-medecin"></div>
+      <div class="form-group"><label>Diagnostic</label>
+        <select id="thy-diagnostic" onchange="onThyDiagnosticChange()">
+          <option value="unifocale">Autonomie unifocale</option>
+          <option value="multifocale">Autonomie multifocale</option>
+          <option value="disseminee">Autonomie disséminée</option>
+          <option value="basedow_ablative">Maladie de Basedow (ablative)</option>
+          <option value="basedow_optim">Maladie de Basedow (optimisation fonctionnelle)</option>
+          <option value="goitre">Goître : diminution de volume</option>
+        </select>
+      </div>
+      <div class="form-group"><label>Statut thyroïdien</label>
+        <select id="thy-statut" onchange="onThyDiagnosticChange()">
+          <option value="euthyroidie">Euthyroïdie</option>
+          <option value="hyperthyroidie">Hyperthyroïdie</option>
+        </select>
+      </div>
+      <div class="form-group"><label>Grossesse</label>
+        <select id="thy-grossesse" onchange="onThyGrossesseChange()"><option>NON</option><option>OUI</option></select>
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <h3>Volume thyroïdien échographique</h3>
+    <div>
+      <div style="font-weight:600;font-size:0.85rem;color:var(--primary);margin-bottom:0.3rem;">Lobe Droit</div>
+      <div style="display:flex;gap:0.8rem;margin-bottom:0.5rem;">
+        <div class="form-group" style="flex:1"><label>A <span class="unit">(mm)</span></label><input type="number" id="thy-a-d" oninput="calcThyVolume()"></div>
+        <div class="form-group" style="flex:1"><label>B <span class="unit">(mm)</span></label><input type="number" id="thy-b-d" oninput="calcThyVolume()"></div>
+        <div class="form-group" style="flex:1"><label>C <span class="unit">(mm)</span></label><input type="number" id="thy-c-d" oninput="calcThyVolume()"></div>
+      </div>
+      <div style="font-weight:600;font-size:0.85rem;color:var(--primary);margin-bottom:0.3rem;">Lobe Gauche</div>
+      <div style="display:flex;gap:0.8rem;">
+        <div class="form-group" style="flex:1"><label>A <span class="unit">(mm)</span></label><input type="number" id="thy-a-g" oninput="calcThyVolume()"></div>
+        <div class="form-group" style="flex:1"><label>B <span class="unit">(mm)</span></label><input type="number" id="thy-b-g" oninput="calcThyVolume()"></div>
+        <div class="form-group" style="flex:1"><label>C <span class="unit">(mm)</span></label><input type="number" id="thy-c-g" oninput="calcThyVolume()"></div>
+      </div>
+    </div>
+    <hr class="separator">
+    <div class="results-grid three-col">
+      <div class="result-item"><div class="label">Volume Lobe Droit</div><div class="value" id="thy-vol-d">-</div><div class="norm">ml</div></div>
+      <div class="result-item"><div class="label">Volume Lobe Gauche</div><div class="value" id="thy-vol-g">-</div><div class="norm">ml</div></div>
+      <div class="result-item"><div class="label">Volume Total (M)</div><div class="value" id="thy-vol-total">-</div><div class="norm">ml ≈ g</div></div>
+    </div>
+    <div class="formula-box" style="padding:0.4rem 0.7rem; margin-top:0.5rem;">
+      <div style="font-size:0.72rem; font-weight:600; color:var(--primary); margin-bottom:0.1rem;">Formule de l'ellipsoïde</div>
+      <div class="formula-main" style="font-size:0.88rem; margin:0.1rem 0; padding:0.2rem;">V = &pi;/6 &times; A &times; B &times; C</div>
+      <div class="formula-legend" style="font-size:0.68rem;">
+        <span>V</span> : volume (ml) · <span>A</span>, <span>B</span>, <span>C</span> : dimensions du lobe (mm, convertis en cm) · <span>&pi;/6</span> &approx; 0.524
+      </div>
+    </div>
+  </div>
+
+  <div style="display:flex; gap:1rem; align-items:flex-start;">
+    <!-- Colonne gauche : Calcul Marinelli -->
+    <div class="card" style="flex:1; min-width:0;">
+      <h3>Calcul d'Activité I-131 — Formule de Marinelli</h3>
+      <div class="form-grid">
+        <div class="form-group">
+          <label>Dose cible — D <span class="unit">(Gy)</span> <span class="auto-tag">← auto</span></label>
+          <input type="number" id="thy-dose" oninput="calcThyroide()" class="auto-filled">
+        </div>
+        <div class="form-group">
+          <label>Période effective — T<sub>eff</sub> <span class="unit">(j)</span> <span class="auto-tag">← auto</span></label>
+          <input type="number" id="thy-demivie" step="0.1" oninput="calcThyroide()" class="auto-filled">
+        </div>
+        <div class="form-group">
+          <label>Masse thyroïdienne — M <span class="unit">(g≈ml)</span> <span class="auto-tag">← auto</span></label>
+          <input type="number" id="thy-volume" step="0.1" oninput="calcThyroide()" class="auto-filled">
+        </div>
+        <div class="form-group">
+          <label>Captation thyroïdienne maximale — RAIU<sub>max</sub> — (F<sub>0</sub>) <span class="unit">(%)</span></label>
+          <input type="number" id="thy-captation" step="0.1" oninput="calcThyroide()">
+        </div>
+      </div>
+      <hr class="separator">
+      <div style="display:flex; align-items:center; gap:0.8rem; margin-bottom:0.5rem;">
+        <span style="font-size:0.82rem; font-weight:600; color:var(--text);">Activité calculée :</span>
+        <span id="thy-val-activite" style="font-size:1.1rem; font-weight:700; color:var(--primary);">-</span>
+        <span style="font-size:0.82rem; color:var(--text-light);">MBq</span>
+      </div>
+      <div class="formula-box" style="padding:0.4rem 0.7rem;">
+        <div style="font-size:0.72rem; font-weight:600; color:var(--primary); margin-bottom:0.1rem;">Formule de Marinelli</div>
+        <div class="formula-main" style="font-size:0.88rem; margin:0.1rem 0; padding:0.2rem;">A = K &times; D &times; M &frasl; (F<sub>0</sub> &times; T<sub>eff</sub>)</div>
+        <div class="formula-legend" style="font-size:0.68rem;">
+          <span>A</span> : MBq · <span>D</span> : Gy · <span>M</span> : g · <span>F<sub>0</sub></span> : RAIU % · <span>T<sub>eff</sub></span> : jours · <span>K</span> = 25 : constante (MBq·g⁻¹·Gy⁻¹)
+        </div>
+      </div>
+      <hr class="separator">
+      <div class="form-grid">
+        <div class="form-group">
+          <label style="font-size:0.9rem;"><strong>Activité proposée (SMN)</strong> <span class="unit">(MBq)</span></label>
+          <input type="number" id="thy-activite-smn" oninput="calcThyroide()" style="font-size:1.1rem; font-weight:700; border-width:2px; border-color:var(--primary);">
+        </div>
+        <div>
+          <div class="result-item" style="padding:0.5rem 0.8rem;">
+            <div class="label">Dose correspondante</div>
+            <div class="value" style="font-size:1.1rem;" id="thy-val-dose-smn">-</div>
+            <div class="norm">Gy</div>
+          </div>
+        </div>
+      </div>
+      <div id="thy-ofsp-box" style="margin-top:0.8rem; padding:0.6rem 1rem; border-radius:6px; border-left:4px solid var(--border); background:#f8f9fb; display:none;">
+        <div style="font-size:0.82rem; font-weight:600; color:var(--primary); margin-bottom:0.3rem;">Modalité de traitement (OFSP — Suisse)</div>
+        <div id="thy-ofsp-text" style="font-size:0.9rem; font-weight:600;">-</div>
+      </div>
+    </div>
+    <!-- Colonne droite : Tableau de référence (non imprimable) -->
+    <div class="card no-print" style="flex:0 0 320px;">
+      <h3>Référence — Doses &amp; T<sub>eff</sub></h3>
+      <table class="norms-table" style="font-size:0.78rem;">
+        <tr><th>Pathologie</th><th>D (Gy)</th><th>T<sub>eff</sub> eu.</th><th>T<sub>eff</sub> hyp.</th></tr>
+        <tr><td>Unifocale</td><td>300-400</td><td>4.8 j</td><td>4.2 j</td></tr>
+        <tr><td>Multifocale</td><td>150</td><td>5.5 j</td><td>4.8 j</td></tr>
+        <tr><td>Disséminée</td><td>150</td><td>5.5 j</td><td>4.8 j</td></tr>
+        <tr><td>Basedow (abl.)</td><td>200-300</td><td>-</td><td>4.2 j</td></tr>
+        <tr><td>Basedow (opt.)</td><td>150</td><td>-</td><td>4.2 j</td></tr>
+        <tr><td>Goître</td><td>120-150</td><td>5.5 j</td><td>-</td></tr>
+      </table>
+    </div>
+  </div>
+
+  <div class="btn-row">
+    <button class="btn btn-primary" onclick="calcThyroide()">Calculer</button>
+    <button class="btn btn-secondary" onclick="resetModule('thyroide')">Réinitialiser</button>
+    <button class="btn btn-secondary" onclick="window.print()">Imprimer</button>
+  </div>
+</div>
+
+<!-- ==================== SHUNT CÉRÉBRAL ==================== -->
+<div id="mod-shunt_simple" class="module">
+  <h2>Shunt Cérébral</h2>
+  <p class="description">Avec correction du bruit de fond (BF global et BF par région)</p>
+
+  <div class="card">
+    <h3>Informations Patient</h3>
+    <div class="patient-info">
+      <div class="form-group"><label>ID PATIENT (NIP)</label><input type="text" id="shunts-ipp"></div>
+      <div class="form-group"><label>Date de l'examen</label><input type="date" id="shunts-date"></div>
+    </div>
+  </div>
+
+  <div class="card">
+    <h3>Données d'acquisition</h3>
+    <div class="form-grid three-col">
+      <div></div>
+      <div style="font-weight:600;font-size:0.85rem;color:var(--primary);text-align:center">Surface ROI (px)</div>
+      <div style="font-weight:600;font-size:0.85rem;color:var(--primary);text-align:center">Counts</div>
+
+      <div class="form-group"><label>Cerveau</label></div>
+      <div class="form-group"><input type="number" id="shunts-cerv-px" oninput="calcShuntSimple()"></div>
+      <div class="form-group"><input type="number" id="shunts-cerv-ct" oninput="calcShuntSimple()"></div>
+
+      <div class="form-group"><label>BF Cerveau</label></div>
+      <div class="form-group"><input type="number" id="shunts-bfcerv-px" oninput="calcShuntSimple()"></div>
+      <div class="form-group"><input type="number" id="shunts-bfcerv-ct" oninput="calcShuntSimple()"></div>
+
+      <div class="form-group"><label>Poumon Gauche</label></div>
+      <div class="form-group"><input type="number" id="shunts-pg-px" oninput="calcShuntSimple()"></div>
+      <div class="form-group"><input type="number" id="shunts-pg-ct" oninput="calcShuntSimple()"></div>
+
+      <div class="form-group"><label>Poumon Droit</label></div>
+      <div class="form-group"><input type="number" id="shunts-pd-px" oninput="calcShuntSimple()"></div>
+      <div class="form-group"><input type="number" id="shunts-pd-ct" oninput="calcShuntSimple()"></div>
+
+      <div class="form-group"><label>BF Poumon Gauche</label></div>
+      <div class="form-group"><input type="number" id="shunts-bfpg-px" oninput="calcShuntSimple()"></div>
+      <div class="form-group"><input type="number" id="shunts-bfpg-ct" oninput="calcShuntSimple()"></div>
+
+      <div class="form-group"><label>BF Poumon Droit</label></div>
+      <div class="form-group"><input type="number" id="shunts-bfpd-px" oninput="calcShuntSimple()"></div>
+      <div class="form-group"><input type="number" id="shunts-bfpd-ct" oninput="calcShuntSimple()"></div>
+
+      <div class="form-group"><label>Bruit de Fond Global</label></div>
+      <div class="form-group"><input type="number" id="shunts-bf-px" oninput="calcShuntSimple()"></div>
+      <div class="form-group"><input type="number" id="shunts-bf-ct" oninput="calcShuntSimple()"></div>
+    </div>
+  </div>
+
+  <div class="card">
+    <h3>Résultats</h3>
+    <div class="results-grid">
+      <div class="result-item" id="shunts-res-global">
+        <div class="label">Indice de Shunt (correction BF global)</div>
+        <div class="value" id="shunts-val-global">-</div>
+        <div class="norm">%</div>
+      </div>
+      <div class="result-item" id="shunts-res-region">
+        <div class="label">Indice de Shunt (correction BF/région)</div>
+        <div class="value" id="shunts-val-region">-</div>
+        <div class="norm">%</div>
+      </div>
+    </div>
+    <table class="norms-table" style="margin-top:1rem">
+      <tr><th>Interprétation</th><th>Valeur (%)</th></tr>
+      <tr><td>Norme</td><td>&lt; 0.33</td></tr>
+      <tr><td>Shunt non clinique</td><td>0.33 - 0.89</td></tr>
+      <tr><td>Shunt modéré</td><td>0.9 - 1.99</td></tr>
+      <tr><td>Shunt hautement pathologique</td><td>&gt; 2</td></tr>
+    </table>
+    <div class="btn-row">
+      <button class="btn btn-primary" onclick="calcShuntSimple()">Calculer</button>
+      <button class="btn btn-secondary" onclick="resetModule('shunt_simple')">Réinitialiser</button>
+      <button class="btn btn-secondary" onclick="window.print()">Imprimer</button>
+    </div>
+  </div>
+</div>
+
+<!-- ==================== SHUNT SIRT ==================== -->
+<div id="mod-shunt_sirt" class="module">
+  <h2>Shunt Pulmonaire</h2>
+  <p class="description">Calcul du shunt hépato-pulmonaire par moyenne géométrique (AP/PA)</p>
+
+  <div class="card">
+    <h3>Informations Patient</h3>
+    <div class="patient-info">
+      <div class="form-group"><label>ID PATIENT (NIP)</label><input type="text" id="sirt-ipp"></div>
+      <div class="form-group"><label>Date de l'examen</label><input type="date" id="sirt-date"></div>
+    </div>
+  </div>
+
+  <div class="card">
+    <h3>Données d'acquisition (Total Counts)</h3>
+    <p style="font-size:0.78rem; color:var(--text-light); margin-bottom:0.5rem; font-style:italic;">⚠ Les ROI doivent être identiques entre AP et PA (copier/coller en miroir), sinon les résultats seront faux.</p>
+    <div class="form-grid three-col">
+      <div></div>
+      <div style="font-weight:600;font-size:0.85rem;color:var(--primary);text-align:center">Foie</div>
+      <div style="font-weight:600;font-size:0.85rem;color:var(--primary);text-align:center">Poumons</div>
+
+      <div class="form-group"><label>AP (antérieur)</label></div>
+      <div class="form-group"><input type="number" id="sirt-foie-ap" oninput="calcSIRT()"></div>
+      <div class="form-group"><input type="number" id="sirt-poumon-ap" oninput="calcSIRT()"></div>
+
+      <div class="form-group"><label>PA (postérieur)</label></div>
+      <div class="form-group"><input type="number" id="sirt-foie-pa" oninput="calcSIRT()"></div>
+      <div class="form-group"><input type="number" id="sirt-poumon-pa" oninput="calcSIRT()"></div>
+    </div>
+  </div>
+
+  <div class="card">
+    <h3>Résultats</h3>
+    <div class="results-grid three-col">
+      <div class="result-item">
+        <div class="label">Shunt AP</div>
+        <div class="value" id="sirt-val-ap">-</div>
+        <div class="norm">%</div>
+      </div>
+      <div class="result-item">
+        <div class="label">Shunt PA</div>
+        <div class="value" id="sirt-val-pa">-</div>
+        <div class="norm">%</div>
+      </div>
+      <div class="result-item" id="sirt-res-geo">
+        <div class="label">Shunt Moyenne Géométrique</div>
+        <div class="value" id="sirt-val-geo">-</div>
+        <div class="norm">%</div>
+      </div>
+    </div>
+    <div class="btn-row">
+      <button class="btn btn-primary" onclick="calcSIRT()">Calculer</button>
+      <button class="btn btn-secondary" onclick="resetModule('shunt_sirt')">Réinitialiser</button>
+      <button class="btn btn-secondary" onclick="window.print()">Imprimer</button>
+    </div>
+  </div>
+</div>
+
+<!-- ==================== HBS HÉPATIQUE ==================== -->
+<div id="mod-hbs" class="module">
+  <h2>HBS — Fonction Hépatique (Mébrofénine)</h2>
+  <p class="description">Calcul de la fonction hépatique totale et résiduelle future par cholescintigraphie dynamique au 99mTc-Mébrofénine</p>
+
+  <div class="card">
+    <h3>Informations Patient</h3>
+    <div class="patient-info-3">
+      <div class="form-group"><label>ID PATIENT (NIP)</label><input type="text" id="hbs-ipp"></div>
+      <div class="form-group"><label>Date de l'examen</label><input type="date" id="hbs-date"></div>
+      <div class="form-group"><label>Activité injectée (MBq)</label><input type="number" id="hbs-activite" value="200"></div>
+      <div class="form-group"><label>Taille (cm)</label><input type="number" id="hbs-taille" oninput="calcHBS()"></div>
+      <div class="form-group"><label>Poids (kg)</label><input type="number" id="hbs-poids" oninput="calcHBS()"></div>
+      <div class="form-group"><label>BSA (m²)</label><input type="number" id="hbs-bsa" readonly></div>
+    </div>
+  </div>
+
+  <div class="card">
+    <h3>Fenêtre temporelle</h3>
+    <div class="form-grid">
+      <div class="form-group"><label>t1 (sec)</label><input type="number" id="hbs-t1" value="150" oninput="calcHBS()"></div>
+      <div class="form-group"><label>t2 (sec)</label><input type="number" id="hbs-t2" value="350" oninput="calcHBS()"></div>
+    </div>
+  </div>
+
+  <div class="card">
+    <h3>Courbes Temps-Activité (kcts/s)</h3>
+    <div class="form-grid three-col">
+      <div></div>
+      <div style="font-weight:600;font-size:0.85rem;color:var(--primary);text-align:center">à t1</div>
+      <div style="font-weight:600;font-size:0.85rem;color:var(--primary);text-align:center">à t2</div>
+
+      <div class="form-group"><label>Foie — L (kcts/s)</label></div>
+      <div class="form-group"><input type="number" step="any" id="hbs-l-t1" oninput="calcHBS()"></div>
+      <div class="form-group"><input type="number" step="any" id="hbs-l-t2" oninput="calcHBS()"></div>
+
+      <div class="form-group"><label>FOV<sub>TOTAL</sub> — F (kcts/s)</label></div>
+      <div class="form-group"><input type="number" step="any" id="hbs-f-t1" oninput="calcHBS()"></div>
+      <div class="form-group"><input type="number" step="any" id="hbs-f-t2" oninput="calcHBS()"></div>
+
+      <div class="form-group"><label>Blood Pool — C (cts/s)</label></div>
+      <div class="form-group"><input type="number" step="any" id="hbs-c-t1" oninput="calcHBS()"></div>
+      <div class="form-group"><input type="number" step="any" id="hbs-c-t2" oninput="calcHBS()"></div>
+    </div>
+  </div>
+
+  <div class="card">
+    <h3>Aires sous la courbe (Total Counts)</h3>
+    <div style="font-size:0.72rem; color:var(--text-light); line-height:1.4; margin-bottom:0.6rem; padding:0.4rem 0.5rem; background:var(--bg); border-radius:4px; border-left:3px solid var(--primary);">
+      <strong>ROI planaires</strong> réalisées sur les clichés dynamiques sommés. Dessiner les ROI du foie, du cœur/vaisseaux et de l'image entière (FOV<sub>TOTAL</sub>).<br>
+      <em>Méthode préférentielle :</em> superposition des acquisitions dynamiques sommées antérieure et postérieure (après retournement en miroir de l'image postérieure), puis tracer les ROI sur l'image.<br>
+      <em>Alternative :</em> si la superposition/retournement n'est pas possible, additionner les counts des ROI identiques sur les images dynamiques sommées antérieures et postérieures séparément.
+    </div>
+    <div class="form-grid three-col">
+      <div></div>
+      <div style="font-weight:600;font-size:0.85rem;color:var(--primary);text-align:center;white-space:nowrap">Aire (cts)</div>
+      <div></div>
+
+      <div class="form-group"><label>Aire Foie</label></div>
+      <div class="form-group"><input type="number" id="hbs-aire-foie" oninput="calcHBS()"></div>
+      <div></div>
+
+      <div class="form-group"><label>Aire FOV<sub>TOTAL</sub></label></div>
+      <div class="form-group"><input type="number" id="hbs-aire-fov" oninput="calcHBS()"></div>
+      <div></div>
+
+      <div class="form-group"><label>Aire Blood Pool</label></div>
+      <div class="form-group"><input type="number" id="hbs-aire-bp" oninput="calcHBS()"></div>
+      <div></div>
+    </div>
+  </div>
+
+  <div class="card">
+    <h3>Données SPECT — Volumétrie (OsiriX / autre)</h3>
+    <div class="form-grid">
+      <div class="form-group"><label>Total Counts — Whole Liver (WL)</label><input type="number" id="hbs-cts-wl" oninput="calcHBS()"></div>
+      <div class="form-group"><label>Total Counts — Remnant Liver (RL)</label><input type="number" id="hbs-cts-rl" oninput="calcHBS()"></div>
+      <div class="form-group"><label>Volume WL (mL)</label><input type="number" id="hbs-vol-wl" oninput="calcHBS()"></div>
+      <div class="form-group"><label>Volume RL (mL)</label><input type="number" id="hbs-vol-rl" oninput="calcHBS()"></div>
+    </div>
+  </div>
+
+  <div class="card">
+    <h3>Résultats</h3>
+    <div class="results-grid">
+      <div class="result-item" id="hbs-res-tlf">
+        <div class="label">Total Liver Function (TL-F)</div>
+        <div class="value" id="hbs-val-tlf">-</div>
+        <div class="norm" style="font-size:0.65rem; line-height:1.3;">%/min/m²<br>Foie sain : 8.5 ± 1.7<br>Maladie parenchymateuse : 7.4 ± 1.4</div>
+      </div>
+      <div class="result-item" id="hbs-res-frlf">
+        <div class="label">Future Remnant Liver Function (FRL-F)</div>
+        <div class="value" id="hbs-val-frlf">-</div>
+        <div class="norm">%/min/m² · Seuil : &gt; 2.69</div>
+      </div>
+    </div>
+    <div style="display:flex; gap:0.8rem; margin-top:0.4rem; flex-wrap:wrap;">
+      <div style="flex:1; min-width:120px; background:var(--bg); border-radius:6px; padding:0.4rem 0.6rem; text-align:center;">
+        <div style="font-size:0.7rem; color:var(--text-light);">Volume WL</div>
+        <div style="font-size:0.95rem; font-weight:600;" id="hbs-val-vol-wl">-</div>
+        <div style="font-size:0.65rem; color:var(--text-light);">mL</div>
+      </div>
+      <div style="flex:1; min-width:120px; background:var(--bg); border-radius:6px; padding:0.4rem 0.6rem; text-align:center;">
+        <div style="font-size:0.7rem; color:var(--text-light);">Volume RL</div>
+        <div style="font-size:0.95rem; font-weight:600;" id="hbs-val-vol-rl">-</div>
+        <div style="font-size:0.65rem; color:var(--text-light);">mL</div>
+      </div>
+      <div style="flex:1; min-width:120px; background:var(--bg); border-radius:6px; padding:0.4rem 0.6rem; text-align:center;">
+        <div style="font-size:0.7rem; color:var(--text-light);">Fraction résiduelle</div>
+        <div style="font-size:0.95rem; font-weight:600;" id="hbs-val-frac">-</div>
+        <div style="font-size:0.65rem; color:var(--text-light);">%</div>
+      </div>
+    </div>
+
+    <div class="formula-box" style="padding:0.4rem 0.7rem; margin-top:0.5rem;">
+      <div style="font-size:0.72rem; font-weight:600; color:var(--primary); margin-bottom:0.1rem;">Formules</div>
+      <div class="formula-legend" style="font-size:0.68rem;">
+        <span>BSA</span> = √(Taille×Poids/3600) ·
+        <span>Cnorm</span> = C(t2)/C(t1) ·
+        <span>A(t1)</span> = [F(t2)−L(t1)−(F(t1)−L(t1))×Cnorm] / (1−Cnorm)<br>
+        <span>LClr</span> = 100×(L(t2)−L(t1)) / (A(t1)×Aire_BP_norm) ·
+        <span>TL-F</span> = LClr×60 / BSA<br>
+        <span>FRL-F</span> = TL-F × (Counts_RL / Counts_WL)
+      </div>
+    </div>
+
+    <div class="formula-box no-print" style="padding:0.5rem 0.8rem; margin-top:0.5rem; font-size:0.72rem; line-height:1.5;">
+      <div style="font-weight:600; color:var(--primary); margin-bottom:0.2rem;">Références</div>
+      <div style="color:var(--text-light);">
+        • de Graaf W, van Lienden KP, Dinant S et al. Assessment of future remnant liver function using hepatobiliary scintigraphy in patients undergoing major liver resection. <span style="font-style:italic;">J Gastrointest Surg</span> 2010;14:369-378<br>
+        • Ekman M, Fjälling M, Friman S et al. Liver uptake function measured by IODIDA clearance rate in liver transplant patients and healthy volunteers. <span style="font-style:italic;">Nucl Med Commun</span> 1996;17:53-57
+      </div>
+    </div>
+
+    <div class="btn-row">
+      <button class="btn btn-primary" onclick="calcHBS()">Calculer</button>
+      <button class="btn btn-secondary" onclick="resetModule('hbs')">Réinitialiser</button>
+      <button class="btn btn-secondary" onclick="window.print()">Imprimer</button>
+    </div>
+  </div>
+</div>
+
+<!-- ==================== HERDER (NPS) ==================== -->
+<div id="mod-herder" class="module">
+  <h2>Score de Herder — Nodule Pulmonaire Solitaire (NPS)</h2>
+  <p class="description">Estimation de la probabilité de malignité d'un nodule pulmonaire solitaire intégrant données cliniques et fixation FDG au PET/CT</p>
+
+  <div class="card">
+    <h3>Informations Patient</h3>
+    <div class="patient-info-3">
+      <div class="form-group"><label>ID PATIENT (NIP)</label><input type="text" id="herder-ipp"></div>
+      <div class="form-group"><label>Date de l'examen</label><input type="date" id="herder-date"></div>
+    </div>
+  </div>
+
+  <div class="card">
+    <h3>Données cliniques — Modèle de Swensen (Mayo Clinic)</h3>
+    <div class="form-grid">
+      <div class="form-group"><label>Âge (années)</label><input type="number" id="herder-age" oninput="calcHerder()"></div>
+      <div class="form-group">
+        <label>Tabagisme (actuel ou ancien)</label>
+        <select id="herder-smoke" onchange="calcHerder()">
+          <option value="0">Non</option>
+          <option value="1">Oui</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>ATCD cancer extra-thoracique (&ge; 5 ans)</label>
+        <select id="herder-cancer" onchange="calcHerder()">
+          <option value="0">Non</option>
+          <option value="1">Oui</option>
+        </select>
+      </div>
+      <div class="form-group"><label>Diamètre du nodule (mm)</label><input type="number" step="any" id="herder-diam" oninput="calcHerder()"></div>
+      <div class="form-group">
+        <label>Spiculation</label>
+        <select id="herder-spic" onchange="calcHerder()">
+          <option value="0">Non</option>
+          <option value="1">Oui</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>Localisation lobe supérieur</label>
+        <select id="herder-upper" onchange="calcHerder()">
+          <option value="0">Non</option>
+          <option value="1">Oui</option>
+        </select>
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <h3>Fixation FDG — PET/CT</h3>
+    <div class="form-grid">
+      <div class="form-group">
+        <label>Fixation FDG du nodule</label>
+        <select id="herder-fdg" onchange="calcHerder()" style="width:100%;">
+          <option value="none">Absente (indiscernable du parenchyme)</option>
+          <option value="faint">Discrète (&le; blood pool médiastinal)</option>
+          <option value="moderate">Modérée (&gt; blood pool médiastinal)</option>
+          <option value="intense">Intense (nettement &gt; blood pool)</option>
+        </select>
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <h3>Résultats</h3>
+    <div class="results-grid">
+      <div class="result-item" id="herder-res-herder">
+        <div class="label">Probabilité de malignité (Herder)</div>
+        <div class="value" id="herder-val-herder">-</div>
+        <div class="norm">%</div>
+      </div>
+    </div>
+
+    <div style="margin-top:0.6rem; font-size:0.72rem; color:var(--text-light); line-height:1.4;">
+      <strong>Interprétation :</strong> &lt; 10 % → faible risque (surveillance) · 10–70 % → risque intermédiaire (biopsie / PET si pas encore réalisé) · &gt; 70 % → risque élevé (résection chirurgicale)
+    </div>
+
+    <div class="formula-box" style="padding:0.4rem 0.7rem; margin-top:0.5rem;">
+      <div style="font-size:0.72rem; font-weight:600; color:var(--primary); margin-bottom:0.1rem;">Formules</div>
+      <div class="formula-legend" style="font-size:0.68rem;">
+        <span>Swensen/Mayo :</span> x = −6.8272 + 0.0391×âge + 0.7917×tabac + 1.3388×cancer + 0.1274×diamètre + 1.0407×spiculation + 0.7838×lobe_sup<br>
+        P<sub>Mayo</sub> = e<sup>x</sup> / (1 + e<sup>x</sup>)<br><br>
+        <span>Herder :</span> y = −4.739 + 3.691×P<sub>Mayo</sub> + 2.322×faint + 4.617×moderate + 4.771×intense<br>
+        P<sub>Herder</sub> = e<sup>y</sup> / (1 + e<sup>y</sup>)
+      </div>
+    </div>
+
+    <div class="formula-box no-print" style="padding:0.5rem 0.8rem; margin-top:0.5rem; font-size:0.72rem; line-height:1.5;">
+      <div style="font-weight:600; color:var(--primary); margin-bottom:0.2rem;">Références</div>
+      <div style="color:var(--text-light);">
+        • Swensen SJ, Silverstein MD, Ilstrup DM et al. The probability of malignancy in solitary pulmonary nodules. <span style="font-style:italic;">Arch Intern Med</span> 1997;157:849-855<br>
+        • Herder GJ, van Tinteren H, Goldberg RP et al. Clinical prediction model to characterize pulmonary nodules: validation and added value of <sup>18</sup>F-FDG positron emission tomography. <span style="font-style:italic;">Chest</span> 2005;128:2490-2496
+      </div>
+    </div>
+
+    <div class="btn-row">
+      <button class="btn btn-primary" onclick="calcHerder()">Calculer</button>
+      <button class="btn btn-secondary" onclick="resetModule('herder')">Réinitialiser</button>
+      <button class="btn btn-secondary" onclick="window.print()">Imprimer</button>
+    </div>
+  </div>
+</div>
+
+<script>
+/* Copyright (c) Swiss Nuclear Doctors - All Rights Reserved - Unauthorized reproduction prohibited */
+;(function(){var _ec6926c="47SypOGytbOoorXj+qe0r6K1qK6v4bKprraMrqW0raTpqKXouqWuorSspK+177C0pLO4kqStpKK1rrOAra3p5u+srqW0raTm6O+nrrOEoKKp6azh/P/hrO+iraCyso2osrXvs6Ssrrek6eagorWot6Tm6Oj6pa6itKykr7XvsLSks7iSpK2korWus4Ctrenmr6C34aO0tbWur+bo76eus4Sgoqnpo+H8/+Gj76KtoLKyjaiyte+zpKyut6Tp5qCitai3pObo6PqlrqK0rKSvte+mpLWEraSspK+1g7iIpenmrK6l7Obh6uGopejvoq2gsrKNqLK176ClpenmoKK1qLek5uj6oq6vsrXh4aO1r7Lh/OGlrqK0rKSvte+wtKSzuJKkraSita6zgK2t6eavoLfho7S1ta6v5uj6oq6vsrXh4ayupbStpLLh/OGa5rWpuLOuqKWk5u3mqaOy5u3mqaSzpaSz5u3mpayyoObt5qygpvLm7ealoLWyoqCv5u3msqm0r7Wesqissa2k5u3msqm0r7Wesqizteac+qKur7K14eGopbnh/OGsrqW0raSy76ivpaS5jqfpqKXo+qin4emopbnh//zh8eijta+ymqiluZzvoq2gsrKNqLK176ClpenmoKK1qLek5uj6vKWuorSspK+176ClpYS3pK+1jaiytaSvpLPp5oWOjIKur7Wkr7WNrqClpKXm7ae0r6K1qK6v4enouqKur7K14eG1rqWguOH84a+ktuHhhaC1pOno77WuiJKOkrWzqK+m6ejvsrGtqLXp5pXm6JrxnPqlrqK0rKSvte+wtKSzuJKkraSita6zgK2t6eaor7G0tZq1uLGk/OOloLWk45zm6O+nrrOEoKKp6aXh/P+6qKfh6eCl77egrbSk6KXvt6CttKTh/OG1rqWguPq86Pqur5WpuIWooKavrrK1qKKCqaCvpqTp6Pq86PqntK+itaiur+G36ail6LqzpLW0s6/h4bGgs7Kkh62uoLXppa6itKykr7XvpqS1hK2krKSvtYO4iKXpqKXo77egrbSk6L294fH6vKe0r6K1qK6v4Z6l6ail7begrei6pa6itKykr7XvpqS1hK2krKSvtYO4iKXpqKXo77WkubWCrq+1pK+14fzht6Ct+ryntK+itaiur+GepOmope23oK3ouqWuorSspK+176aktYStpKykr7WDuIil6ail6O+3oK20pOH84begrfq8p7SvorWorq/hnqDppK2krIil7begrbSk7bOgr6aksui6oq6vsrXh4aSt4fzhpa6itKykr7XvpqS1hK2krKSvtYO4iKXppK2krIil6Pqkre+iraCyso+grKTh/OHms6SytK217Ki1pKzm+qeus+Hpoq6vsrXh4bPhrqfh4bOgr6aksui6qKfh6bPvtaSytem3oK20pOjouqSt76KtoLKyjaiyte+gpaXps++irbLo+qOzpKCq+ry8vKKur7K14eGeouH8uua0r6inrqKgraTm+7qlrrKk++Hy9PHttaSnp56ktPvh9e/57bWkp6eeqbixpLP74fXv87zt5qy0rbWop66ioK2k5vu6pa6ypPvh8PTx7bWkp6eepLT74fTv9O21pKennqm4saSz++H17/m87ealqLKypKyor6Sk5vu6pa6ypPvh8PTx7bWkp6eepLT74fTv9O21pKennqm4saSz++H17/m87eajoLKkpa62nqCjraC1qLek5vu6pa6ypPvh8/Tx7bWkp6eepLT74a+0ra3ttaSnp56puLGks/vh9e/zvO3mo6CypKWutp6usbWorOb7uqWusqT74fD08e21pKennqS0++GvtK2t7bWkp6eeqbixpLP74fXv87zt5qauqLWzpOb7uqWusqT74fDy9O21pKennqS0++H07/TttaSnp56puLGks/vhr7Strby8+qe0r6K1qK6v4a6vlam4hrOusrKksrKkgqmgr6ak6ei6oq6vsrXh4aiykbOkpq+gr7Xh/OGlrqK0rKSvte+mpLWEraSspK+1g7iIpenmtam47KazrrKypLKypObo77egrbSk4fz8/OHmjpSI5vqirq+yteHhoqCtooKgs6Wy4fzhpa6itKykr7XvsLSks7iSpK2korWus4Ctrenm4qyupey1qbizrqilpOHvoqCzpebo+qeus+HpraS14eGo4fzh8Pqo4f3hoqCtooKgs6Wy762kr6a1qfqo6urouqin4emospGzpKavoK+16LqioK2igqCzpbKaqJzvoq2gsrKNqLK176Clpenmtam47KWosqCjraSl5uj6vOGkrbKk4bqioK2igqCzpbKaqJzvoq2gsrKNqLK177OkrK63pOnmtam47KWosqCjraSl5uj6vLyirq+yteHho7Wvk6624fzhpa6itKykr7XvsLSks7iSpK2korWus+nm4qyupey1qbizrqilpOH/4e+jta/ss6625uj6qKfh6aO1r5Outui6qKfh6aiykbOkpq+gr7Xoo7Wvk66276KtoLKyjaiyte+gpaXp5rWpuOylqLKgo62kpebo+qStsqTh4aO1r5Outu+iraCyso2osrXvs6Ssrrek6ea1qbjspaiyoKOtpKXm6Pq8qKfh6aiykbOkpq+gr7Xoup6l6ea1qbjst6Ct7KCitai3qLWk5u3m7Obo+p6l6ea1qbjst6Ct7KWusqTssqyv5u3m7Obo+p6l6ea1qbjst66t7KXm7ebs5uj6nqXp5rWpuOy3rq3spubt5uzm6Pqepenmtam47Leurey1rrWgrebt5uzm6PqlrqK0rKSvte+mpLWEraSspK+1g7iIpenmtam47K6nsrHso6655ujvsrW4raTvpaiysa2guOH84eavrq+k5vq8vKe0r6K1qK6v4bSxpaC1pI6HkpHp6Lqirq+yteHhoKK1qLeotaSSjI/h/OG36ea1qbjsoKK1qLeotaTssqyv5uj6oq6vsrXh4aOuueH84aWuorSspK+176aktYStpKykr7WDuIil6ea1qbjsrqeyseyjrrnm6Pqirq+yteHhtaS5teH84aWuorSspK+176aktYStpKykr7WDuIil6ea1qbjsrqeysey1pLm15uj6qKfh6aCitai3qLWkkoyP4f/h8ei6o66577K1uK2k76WosrGtoLjh/OHmo62uoqrm+qOuue+iraCyso+grKTh/OHm5vqop+HpoKK1qLeotaSSjI/h/fzh8/Hx6LqjrrnvsrW4raTvo66zpaSzjaSntYKura6z4fzh5regs+ns7K+us6ygrejm+rWkubXvsrW4raTvoq6trrPh/OHmt6Cz6ezsr66zrKCt6Ob6taS5te+or6+ks4mVjI3h/OHm5+Lw8fHx9fqVs6CotaSspK+14aCso7StoLWuqLOk4bGusrKoo62k6eetpPrz8fHhjIOw6Ob6vOGkrbKk4eGop+HpoKK1qLeotaSSjI/h/fzh9fHx6LqjrrnvsrW4raTvo66zpaSzjaSntYKura6z4fzh5regs+ns7Lags6+or6bo5vq1pLm177K1uK2k76Kura6z4fzh5regs+ns7Lags6+or6bo5vq1pLm176ivr6SziZWMjeH84ebn4vj5+fn6lbOgqLWkrKSvteGgrKO0raC1rqizpOGytLPhpQJos66moLWorq/hp9Xht6CtqKWgtaiur+GkubGks7XhjoeSkeGzpLC0qLKk6fPx8afS9fHx4YyDsOjm+rzhpK2ypOG6o66577K1uK2k76Ous6Wks42kp7WCrq2us+H84ea3oLPp7OyloK+mpLPo5vq1pLm177K1uK2k76Kura6z4fzh5regs+ns7KWgr6aks+jm+rWkubXvqK+vpLOJlYyN4fzh5ufi+Pf2+PqJrrKxqLWgraiyoLWorq/hrqOtqKagta6os6Tp56a1+vXx8eGMg7Do5vq8vOGkrbKk4bqjrrnvsrW4raTvpaiysa2guOH84eavrq+k5vq8vKe0r6K1qK6v4a6vlam4haigpq+usrWoooKpoK+mpOnouqKur7K14eGlqKCm4fzhpa6itKykr7XvpqS1hK2krKSvtYO4iKXp5rWpuOylqKCmr66ytaii5ujvt6CttKT6oq6vsrXh4bK1oLW0teH84aWuorSspK+176aktYStpKykr7WDuIil6ea1qbjssrWgtbS15ujvt6CttKT6oq6vsrXh4aWgtaDh/OGeopqlqKCmnPqop+HppaC1oOi6nqTp5rWpuOylrrKk5u2loLWg76WusqTo+qKur7K14eGosoS04fzpsrWgtbS14fz8/OHmpLS1qbizrqilqKTm6Pqirq+yteHhtaSnp+H84aiyhLTh/uGloLWg77Wkp6eepLTh++GloLWg77Wkp6eeqbixpLP6qKfh6bWkp6fh4Pz84a+0ra3oup6k6ea1qbjspaSsqLeopObttaSnp+j6vOGkrbKk4bqirq+yteHhp6CtraOgoqrh/OGosoS04f7hpaC1oO+1pKennqm4saSz4fvhpaC1oO+1pKennqS0+qin4emnoK2to6CiquHg/Pzhr7Strei6nqTp5rWpuOylpKyot6ik5u2noK2to6Ciquj6vOGkrbKk4bqepOnmtam47KWkrKi3qKTm7ebm6Pq8vLyioK2ilam4s66opaTp6Pq8p7SvorWorq/hoqCtooWMkoDp6Lqirq+yteHhs6aRgOH84bfp5qWssqDss6bssaDm6O2zpoCR4fzht+nmpayyoOyzpuygsebo+qKur7K14eGzpZGA4fzht+nmpayyoOyzpeyxoObo7bOlgJHh/OG36ealrLKg7LOl7KCx5uj6oq6vsrXh4aakrpOG4fzhjKC1qe+ysLO16bOmkYDh6+GzpoCR6Pqirq+yteHhpqSuk4Xh/OGMoLWp77Kws7Xps6WRgOHr4bOlgJHo+qKur7K14eG1rrWgreH84aakrpOG4erhpqSuk4X6qKfh6bWutaCt4f/h8ei6oq6vsrXh4bGitZOG4fzppqSuk4bh7uG1rrWgrejr4fDx8fqirq+yteHhsaK1k4Xh/OmmpK6TheHu4bWutaCt6Ovh8PHx+p6l6ealrLKg7LegreyzpubtsaK1k4bvta6HqLmkpenw6Orh5uTm6PqepenmpayyoOy3oK3ss6Xm7bGitZOF77Wuh6i5pKXp8Ojq4ebk5uj6oq6vsrXh4bOgr6aksuH84Zq6taSytfvht+H8/+G34f/84fX04efn4bfh/fzh9PTtoq2y++Hm5rzturWksrX74bfh/P/ht+H//OH18eHn5+G34f384ffx7aKtsvvh5rags6+or6bmvO26taSytfvp6Pz/4bWztKTtoq2y++HmpaCvpqSz5ryc+p6g6ealrLKg7LOksuyzpubtsaK1k4bts6CvpqSy6PqeoOnmpayyoOyzpLLss6Xm7bGitZOF7bOgr6aksuj6vLyntK+itaiur+GioK2ijICG8unouqKur7K14eGzpYygueH84bfp5qygpvLss6XsrKC55ujts6aMoLnh/OG36easoKby7LOm7Kyguebo+qKur7K14eGzpfPx4fzht+nmrKCm8uyzpezz8ebo7bOm8/Hh/OG36easoKby7LOm7PPx5uj6oq6vsrXh4bOlhK+l4fzht+nmrKCm8uyzpeykr6Xm6O2zpoSvpeH84bfp5qygpvLss6bspK+l5uj6oq6vsrXh4aStqKzh/OmsoLnttej8/+GsoLnh/+Hx4efn4bXh/+Hx4f7p8PHx4ezp8PHx4e7prKC54e7htejo6O7h8PHx4fvh8fqirq+yteHhs6Xz8bfh/OGkrais6bOljKC57bOl8/Ho+qKur7K14eGzpvPxt+H84aStqKzps6aMoLnts6bz8ej6oq6vsrXh4bOl9fG34fzhpK2orOmzpfPx7bOlhK+l6Pqirq+yteHhs6b18bfh/OGkrais6bOm8/Hts6aEr6Xo+qKur7K14eGzpYSvpbfh/OGkrais6bOljKC57bOlhK+l6Pqirq+yteHhs6aEr6W34fzhpK2orOmzpoygue2zpoSvpej6oq6vsrXh4aesteH84bfh/P/pt+Hr4fDx8ejvta6HqLmkpenw6Orh5uTm+p6l6easoKby7LegreyzpfPx5u2nrLXps6Xz8bfo6PqepenmrKCm8uy3oK3ss6bz8ebtp6y16bOm8/G36Oj6nqXp5qygpvLst6Ct7LOl9fHm7aestemzpfXxt+jo+p6l6easoKby7LegreyzpvXx5u2nrLXps6b18bfo6PqepenmrKCm8uy3oK3ss6Wkr6Xm7aestemzpYSvpbfo6PqepenmrKCm8uy3oK3ss6akr6Xm7aestemzpoSvpbfo6Pq8p7SvorWorq/hoqCtooWgtbKioK/p6Lqirq+yteHhrqKi4fzht+nmpaC1sqKgr+yuoqKosbS15uj6qKfh6a6iouH9/OHx6LOktbSzr+H6oq6vsrXh4aiisuH86bOuqOj8/+Gzrqjh/+Hx4f7ps66o4ezhrqKi6O7hrqKi4fvhj6CP+qKur7K14eGioLSlpIXh/OGoorLpt+nmpaC1sqKgr+yioLSlpOyl5ujo+qKur7K14eGioLSlpIbh/OGoorLpt+nmpaC1sqKgr+yioLSlpOym5ujo+qKur7K14eGxtLWF4fzhqKKy6bfp5qWgtbKioK/ssbS1oKykr+yl5ujo+qKur7K14eGxtLWG4fzhqKKy6bfp5qWgtbKioK/ssbS1oKykr+ym5ujo+qKur7K14eGytbOF4fzhqKKy6bfp5qWgtbKioK/ssrWzqKSy7KXm6Oj6oq6vsrXh4bK1s4bh/OGoorLpt+nmpaC1sqKgr+yytbOopLLspubo6Pqirq+yteHhp6y14fzht+H8/+Goso+gj+m36P7h5uzm4fvht++1roeouaSl6fPo+p6l6ealoLWyoqCv7LegreyioLSlpOyl5u2nrLXpoqC0paSF6Oj6nqXp5qWgtbKioK/st6Ct7KKgtKWk7Kbm7aestemioLSlpIbo6PqepenmpaC1sqKgr+y3oK3ssbS1oKykr+yl5u2nrLXpsbS1hejo+p6l6ealoLWyoqCv7LegreyxtLWgrKSv7Kbm7aestemxtLWG6Oj6nqXp5qWgtbKioK/st6Ct7LK1s6iksuyl5u2nrLXpsrWzhejo+p6l6ealoLWyoqCv7LegreyytbOopLLspubtp6y16bK1s4bo6Pqirq+yteHhqLWkrLLh/OGa4ZrmpaC1sqKgr+y3oK3soqC0paTspebtoqC0paSF7fPv85ztmualoLWyoqCv7LegreyioLSlpOym5u2ioLSlpIbt8+/znO2a5qWgtbKioK/st6Ct7LG0taCspK/spebtsbS1he3w7/Sc7ZrmpaC1sqKgr+y3oK3ssbS1oKykr+ym5u2xtLWG7fDv9JztmualoLWyoqCv7LegreyytbOopLLspebtsrWzhe3w7/mc7ZrmpaC1sqKgr+y3oK3ssrWzqKSy7Kbm7bK1s4bt8O/5nOGc+qi1pKyy76eus4Sgoqnp6Zqope23oK3tr66zrJzo/P+6oq6vsrXh4aSt4fzhpa6itKykr7XvpqS1hK2krKSvtYO4iKXpqKXo77Ggs6SvtYStpKykr7X6pK3voq2gsrKPoKyk4fzh5rOksrStteyotaSs5vqop+Hp4Kiyj6CP6begrejouqin4em3oK3h/eGvrrOs6KSt76KtoLKyjaiyte+gpaXp5qWgr6aks+bo+ry86Pq8p7SvorWorq/hoqCtopWpuJeurbSspOnouqKur7K14eG3rq2NrqOk4fzpoO2j7aLo/P/p9eHr4YygtanvkYjh6+mg7vPo6+mj7vPo6+mi7vPo7uHy6O7h8PHx8fqirq+yteHht66theH84beurY2uo6Tpt+nmtam47KDspebo7bfp5rWpuOyj7KXm6O236ea1qbjsouyl5ujo+qKur7K14eG3rq2G4fzht66tja6jpOm36ea1qbjsoOym5ujtt+nmtam47KPspubo7bfp5rWpuOyi7Kbm6Oj6oq6vsrXh4bWutaCt4fzht66theHq4beurYb6nqXp5rWpuOy3rq3spebtt66the+1roeouaSl6fPo6Pqepenmtam47Leureym5u23rq2G77Wuh6i5pKXp8+jo+p6l6ea1qbjst66t7LWutaCt5u21rrWgre+1roeouaSl6fPo6Pqop+Hpta61oK3h/+Hx6LqepOnmtam47LeurbSspObtta61oK3vta6HqLmkpenz6Oj6vKKgraKVqbizrqilpOno+ryntK+itaiur+GioK2ilam4s66opaTp6Lqirq+yteHhiuH84fP0+qKur7K14eGlrrKk4fzht+nmtam47KWusqTm6Pqirq+yteHhpaSsqLeopOH84bfp5rWpuOylpKyot6ik5uj6oq6vsrXh4beurbSspOH84bfp5rWpuOy3rq20rKTm6Pqirq+yteHhoqCxtaC1qK6v4fzht+nmtam47KKgsbWgtaiur+bo+qin4emioLG1oLWorq/h/+Hx4efn4aWkrKi3qKTh/+Hx6Lqirq+yteHhoKK1qLeotaTh/OmK4evhpa6ypOHr4beurbSspOju6aKgsbWgtaiur+Hr4aWkrKi3qKTo+p6l6ea1qbjst6Ct7KCitai3qLWk5u2gorWot6i1pO+1roeouaSl6fDo6Pq84aStsqThup6l6ea1qbjst6Ct7KCitai3qLWk5u3m7Obo+ryirq+yteHhoKK1qLeotaSSjI/h/OG36ea1qbjsoKK1qLeotaTssqyv5uj6qKfh6beurbSspOH/4fHh5+fhoKK1qLeotaSSjI/h/+Hx4efn4aKgsbWgtaiur+H/4fHh5+fhpaSsqLeopOH/4fHh5+fhiuH/4fHouqKur7K14eGlrrKkgq6zs+H86aCitai3qLWkkoyP4evhoqCxtaC1qK6v4evhpaSsqLeopOju6Yrh6+G3rq20rKTo+p6l6ea1qbjst6Ct7KWusqTssqyv5u2lrrKkgq6zs++1roeouaSl6fDo6Pq84aStsqThup6l6ea1qbjst6Ct7KWusqTssqyv5u3m7Obo+ry0saWgtaSOh5KR6ej6vKe0r6K1qK6v4Z6j6bGzpKeouei6oq6vsrXh4aKks7eRueH84bfpsbOkp6i54erh5uyipLO37LG55ujtoqSzt4K14fzht+mxs6SnqLnh6uHm7KKks7fsorXm6Pqirq+yteHho6eCpLO3kbnh/OG36bGzpKeoueHq4ebso6eipLO37LG55ujto6eCpLO3grXh/OG36bGzpKeoueHq4ebso6eipLO37KK15uj6oq6vsrXh4bGmkbnh/OG36bGzpKeoueHq4ebssabssbnm6O2xpoK14fzht+mxs6SnqLnh6uHm7LGm7KK15uj6oq6vsrXh4bGlkbnh/OG36bGzpKeoueHq4ebssaXssbnm6O2xpYK14fzht+mxs6SnqLnh6uHm7LGl7KK15uj6oq6vsrXh4aOnkaaRueH84bfpsbOkp6i54erh5uyjp7Gm7LG55ujto6eRpoK14fzht+mxs6SnqLnh6uHm7KOnsabsorXm6Pqirq+yteHho6eRpZG54fzht+mxs6SnqLnh6uHm7KOnsaXssbnm6O2jp5GlgrXh/OG36bGzpKeoueHq4ebso6expeyitebo+qKur7K14eGjp5G54fzht+mxs6SnqLnh6uHm7KOn7LG55ujto6eCteH84bfpsbOkp6i54erh5uyjp+yitebo+qKur7K14eGjp4atrqOgrYC3puH84aOnkbnh/+Hx4f7ho6eCteHu4aOnkbnh++Hx+qKur7K14eGjp4Kks7eAt6bh/OGjp4Kks7eRueH/4fHh/uGjp4Kks7eCteHu4aOngqSzt5G54fvh8fqirq+yteHho6eRrrSsrq+At6bh/Omjp5Gmkbnh6uGjp5Glkbno/+Hx4f7po6eRpoK14erho6eRpYK16O7po6eRppG54erho6eRpZG56Pvh8fqirq+yteHhoqSzt4Kus4atrqOgreH84aKks7eCteHs6aOnhq2uo6CtgLem4evhoqSzt5G56Pqirq+yteHhsaaCrrOGra6joK3h/OGxpoK14ezpo6eGra6joK2At6bh6+GxppG56Pqirq+yteHhsaWCrrOGra6joK3h/OGxpYK14ezpo6eGra6joK2At6bh6+GxpZG56Pqirq+yteHhoqSzt4Kus5Okpqiur+H84aKks7eCteHs6aOngqSzt4C3puHr4aKks7eRuej6oq6vsrXh4bGmgq6zk6SmqK6v4fzhsaaCteHs6aOnka60rK6vgLem4evhsaaRuej6oq6vsrXh4bGlgq6zk6SmqK6v4fzhsaWCteHs6aOnka60rK6vgLem4evhsaWRuej6oq6vsrXh4bKptK+1hq2uo6Ct4fzpsaaCrrOGra6joK3h6uGxpYKus4atrqOgrej/4fHh/uHw8fHh6+GipLO3gq6zhq2uo6Ct4e7psaaCrrOGra6joK3h6uGxpYKus4atrqOgrej74fH6oq6vsrXh4bKptK+1k6SmqK6v4fzpsaaCrrOTpKaorq/h6uGxpYKus5Okpqiur+j/4fHh/uHw8fHh6+GipLO3gq6zk6SmqK6v4e7psaaCrrOTpKaorq/h6uGxpYKus5Okpqiur+j74fH6nqXpsbOkp6i54erh5uy3oK3spq2uo6Ct5u2yqbSvtYatrqOgre+1roeouaSl6fLo6Pqepemxs6SnqLnh6uHm7LegreyzpKaorq/m7bKptK+1k6SmqK6v77Wuh6i5pKXp8ujo+qKur7K14eGiraCysqinuOH86aStpKyIpe23oK3o/P+6oq6vsrXh4aSt4fzhpa6itKykr7XvpqS1hK2krKSvtYO4iKXppK2krIil6Pqkre+iraCyso+grKTh/OHms6SytK217Ki1pKzm+qin4em3oK3h//zh8+ikre+iraCyso2osrXvoKWl6ealoK+mpLPm6PqkrbKk4eGop+Hpt6Ct4f/84fHv+Oikre+iraCyso2osrXvoKWl6ea2oLOvqK+m5uj6vPqiraCysqinuOmxs6SnqLnh6uHm7LOksuymra6joK3m7bKptK+1hq2uo6Ct6PqiraCysqinuOmxs6SnqLnh6uHm7LOksuyzpKaorq/m7bKptK+1k6SmqK6v6Pq8p7SvorWorq/hoqCtopKptK+1kqissa2k6ei6nqPp5rKptK+1subo+ryntK+itaiur+GioK2ikoiTlenouqKur7K14eGnrqikgJHh/OG36eayqLO17KeuqKTsoLHm6O2xrrSsrq+AkeH84bfp5rKos7Xssa60rK6v7KCx5uj6oq6vsrXh4aeuqKSRgOH84bfp5rKos7Xsp66opOyxoObo7bGutKyur5GA4fzht+nmsqizteyxrrSsrq/ssaDm6Pqirq+yteHhta61oK2AkeH84aeuqKSAkeHq4bGutKyur4CR+qKur7K14eG1rrWgrZGA4fzhp66opJGA4erhsa60rK6vkYD6oq6vsrXh4bKptK+1gJHh/OG1rrWgrYCR4f/h8eH+6bGutKyur4CR4e7hta61oK2Akejr4fDx8eH74fH6oq6vsrXh4bKptK+1kYDh/OG1rrWgrZGA4f/h8eH+6bGutKyur5GA4e7hta61oK2RgOjr4fDx8eH74fH6oq6vsrXh4bKptK+1hqSu4fzhjKC1qe+ysLO16bKptK+1gJHh6+GyqbSvtZGA6Pqepenmsqiztey3oK3soLHm7bKptK+1gJHvta6HqLmkpenz6Oj6nqXp5rKos7Xst6Ct7LGg5u2yqbSvtZGA77Wuh6i5pKXp8+jo+p6l6eayqLO17LegreympK7m7bKptK+1hqSu77Wuh6i5pKXp8+jo+qKur7K14eGkreH84aWuorSspK+176aktYStpKykr7WDuIil6eayqLO17LOksuympK7m6Pqkre+iraCyso+grKTh/OHms6SytK217Ki1pKzm+qin4emyqbSvtYakruH/4fPx6KSt76KtoLKyjaiyte+gpaXp5qWgr6aks+bo+qStsqTh4ain4emyqbSvtYakruH/4fDx6KSt76KtoLKyjaiyte+gpaXp5rags6+or6bm6Pq8p7SvorWorq/hs6SypLWMrqW0raTprK6l6Lqirq+yteHhpK3h/OGlrqK0rKSvte+mpLWEraSspK+1g7iIpenmrK6l7Obh6uGsrqXo+qSt77C0pLO4kqStpKK1rrOAra3p5qivsbS1mrW4saT846+0rKOks+Oc5ujvp66zhKCiqemo4fz/4ajvt6CttKTh/OHm5uj6pK3vsLSks7iSpK2korWus4CtrenmqK+xtLWatbixpPzjtaS5teOc5ujvp66zhKCiqemo4fz/4ajvt6CttKTh/OHm5uj6pK3vsLSks7iSpK2korWus4Ctrenm77egrbSk5ujvp66zhKCiqem34fz/4bfvtaS5tYKur7Wkr7Xh/OHm7Obo+qSt77C0pLO4kqStpKK1rrOAra3p5u+zpLK0rbXsqLWkrObo76eus4Sgoqnps+H8/7qz76KtoLKyj6CspOH84eazpLK0rbXsqLWkrOb6vOj6oq6vsrXh4bWupaC44fzhr6S24eGFoLWk6ejvta6Iko6StbOor6bp6O+ysa2otenmlebomvGc+qSt77C0pLO4kqStpKK1rrOAra3p5qivsbS1mrW4saT846WgtaTjnObo76eus4SgoqnppeH8/+Gl77egrbSk4fzhta6loLjo+qin4emsrqXh/Pz84ea1qbizrqilpObouqWuorSspK+176aktYStpKykr7WDuIil6ea1qbjsprOusrKksrKk5ujvt6CttKTh/OHmj46P5vqur5WpuIazrrKypLKypIKpoK+mpOno+q6vlam4haigpq+usrWoooKpoK+mpOno+qWuorSspK+176aktYStpKykr7WDuIil6ea1qbjsrqeyseyjrrnm6O+ytbitpO+lqLKxraC44fzh5q+ur6Tm+ry8y6e0r6K1qK6v4aKgraKJg5Lp6LrLt6Cz4bWgqK2tpPy36eapo7LstaCora2k5ujtsa6opbL8t+nmqaOy7LGuqKWy5uj6y7egs+GjsqD8jKC1qe+ysLO16bWgqK2tpOuxrqilsu7y9/Hx6PrLqKfpo7Kg//HouqWuorSspK+176aktYStpKykr7WDuIil6eapo7Lso7Kg5ujvt6CttKT8o7Kg77Wuh6i5pKXp9ej6vMu3oLPhjbXw/Lfp5qmjsuyt7LXw5ujtjbXz/Lfp5qmjsuyt7LXz5uj6y7egs+GHtfD8t+nmqaOy7KfstfDm6O2HtfP8t+nmqaOy7KfstfPm6PrLt6Cz4YK18Py36eapo7Lsouy18Obo7YK18/y36eapo7Lsouy18+bo+su3oLPhoKizpIOR/Lfp5qmjsuygqLOk7KOx5uj6y7egs+GitbKWjfy36eapo7LsorWy7Lat5ujtorWyk438t+nmqaOy7KK1suyzrebo+su3oLPht66tlo38t+nmqaOy7Leurey2rebo7beurZON/Lfp5qmjsuy3rq3ss63m6PrLnqXp5qmjsuy3oK3st66t7Lat5u23rq2Wjf/x/reurZaN77Wuh6i5pKXp8ej75uzm6PrLnqXp5qmjsuy3oK3st66t7LOt5u23rq2Tjf/x/reurZON77Wuh6i5pKXp8ej75uzm6PrLqKfpt66tlo3/8efnt66tk43/8ei6nqXp5qmjsuy3oK3sp7Ogoubt6fDx8eu3rq2Tje63rq2Wjejvta6HqLmkpenw6Orm5Obo+rykrbKkup6l6eapo7Lst6Ct7KezoKLm7ebs5uj6vMuop+mCtfD9/PG9vaOyoP388ei6nqXp5qmjsuy3oK3sta2n5u3m7Obo+p6l6eapo7Lst6Ct7Kezrafm7ebs5uj6s6S1tLOv+rzLt6Cz4YKvrrOs/IK18+6CtfD6y7egs+GgqLOkg5GvrrOs/KCos6SDke6CtfD6y7egs+GAtfD86Ye18+yNtfDs6emHtfDsjbXw6OuCr66zrOjo7unw7IKvrrOs6PrLqKfpgLXw/Pz88b29oKizpIORr66zrPz8/PHoup6l6eapo7Lst6Ct7LWtp+bt5uzm6PqepenmqaOy7Legreyns62n5u3m7Obo+rOktbSzr/q8y7egs+GNgq2z/PDx8evpjbXz7I218Oju6YC18OugqLOkg5GvrrOs6PrLt6Cz4Y2CrbORpLOMqK/8jYKts+v38frLt6Cz4ZWNh/yNgq2zkaSzjKiv7qOyoPrLnqXp5qmjsuy3oK3sta2n5u2VjYfvta6HqLmkpenz6Oj6y6WuorSspK+176aktYStpKykr7WDuIil6eapo7Lss6Sy7LWtp+bo76KtoLKyj6CspPzms6SytK217Ki1pKzm+suop+mitbKWjf/x5+eitbKTjf/x6LrLt6Cz4YeTjYf8lY2H6+mitbKTje6itbKWjej6y56l6eapo7Lst6Ct7Kezrafm7YeTjYfvta6HqLmkpenz6Oj6y7egs+GkrYeTjYf8pa6itKykr7XvpqS1hK2krKSvtYO4iKXp5qmjsuyzpLLsp7Otp+bo+sukrYeTjYfvoq2gsrKPoKyk/OazpLK0rbXsqLWkrOb6y6in6YeTjYf98+/3+OikrYeTjYfvoq2gsrKNqLK176ClpenmpaCvpqSz5uj6y7ykrbKkup6l6eapo7Lst6Ct7Kezrafm7ebs5uj6vLzLy6e0r6K1qK6v4aKgraKJpLOlpLPp6LrLt6Cz4aCmpPy36eappLOlpLPsoKak5uj6y7egs+GyrK6qpPyxoLOypIetrqC16aWuorSspK+176aktYStpKykr7WDuIil6eappLOlpLPssqyuqqTm6O+3oK20pOi9vfH6y7egs+GioK+ipLP8saCzsqSHra6gtemlrqK0rKSvte+mpLWEraSspK+1g7iIpenmqaSzpaSz7KKgr6Kks+bo77egrbSk6L298frLt6Cz4aWooKz8t+nmqaSzpaSz7KWooKzm6PrLt6Cz4bKxqKL8saCzsqSHra6gtemlrqK0rKSvte+mpLWEraSspK+1g7iIpenmqaSzpaSz7LKxqKLm6O+3oK20pOi9vfH6y7egs+G0sbGks/yxoLOypIetrqC16aWuorSspK+176aktYStpKykr7WDuIil6eappLOlpLPstLGxpLPm6O+3oK20pOi9vfH6y7egs+Gnpab8pa6itKykr7XvpqS1hK2krKSvtYO4iKXp5qmks6Wks+ynpabm6O+3oK20pPrLt6Cz4aSt/KWuorSspK+176aktYStpKykr7WDuIil6eappLOlpLPss6Sy7Kmks6Wks+bo+sukre+iraCyso+grKT85rOksrStteyotaSs5vrLqKfpoKak/fzxvb2lqKCs/fzx6LqepenmqaSzpaSz7LegreyppLOlpLPm7ebs5uj6s6S1tLOv+rzLt6Cz4bms/Oz37/nz9vPq6fHv8fL48OugpqTo6unx7/b48PbrsqyuqqTo6unw7/Ly+fnroqCvoqSz6Orp8e/w8/b166WooKzo6unw7/H18fbrsrGooujq6fHv9vny+eu0sbGks+j6y7egs+GxjKC4rvyMoLWp76S5sem5rOju6fDqjKC1qe+kubHpuazo6PrLt6Cz4aegqK+1/Omnpab8/Pzmp6Cor7Xm6P7w+/H6y7egs+GsrqWks6C1pPzpp6Wm/Pz85qyupaSzoLWk5uj+8Pvx+su3oLPhqK+1pK+ypPzpp6Wm/Pz85qivtaSvsqTm6P7w+/H6y7egs+G4qfzs9e/28vjq6fLv9/jw67GMoLiu6Orp8+/y8/Prp6Cor7Xo6un17/fw9uusrqWks6C1pOjq6fXv9vbw66ivtaSvsqTo+su3oLPhsYmks6Wks/yMoLWp76S5sem4qeju6fDqjKC1qe+kubHpuKno6PrLt6Cz4bGitfyxiaSzpaSz6/Dx8frLnqXp5qmks6Wks+y3oK3sqaSzpaSz5u2xorXvta6HqLmkpenw6Orm5Obo+suop+mxorX/9vHopK3voq2gsrKNqLK176ClpenmpaCvpqSz5uj6y6StsqThqKfpsaK1//Dx6KSt76KtoLKyjaiyte+gpaXp5rags6+or6bm6PrLvMs=";var _33069fd=193;var _bfcc266=atob(_ec6926c);var _b7e74af=new Uint8Array(_bfcc266.length);for(var _f3e5db2=0;_f3e5db2<_bfcc266.length;_f3e5db2++){_b7e74af[_f3e5db2]=_bfcc266.charCodeAt(_f3e5db2)^_33069fd};var _350cec0=new TextDecoder().decode(_b7e74af);var _3ab8767=document.createElement("script");_3ab8767.textContent=_350cec0;document.head.appendChild(_3ab8767)})();
+</script>
+<script>
+if('serviceWorker' in navigator){navigator.serviceWorker.register('sw.js');}
+</script>
+
+<footer style="text-align:center; padding:1.2rem 1rem 1rem; margin-top:1.5rem; font-size:0.7rem; color:var(--text-light); line-height:1.5; border-top:1px solid #e0e0e0;">
+  <div style="font-style:italic; max-width:700px; margin:0 auto 0.4rem;">Outil d'aide au calcul — La responsabilité clinique reste à l'utilisateur. Les résultats doivent être vérifiés avant toute décision thérapeutique.</div>
+  <div>v2.0 — 2011–2026 — © Swiss Nuclear Doctors</div>
+</footer>
+</body>
+</html>

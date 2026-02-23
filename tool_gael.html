@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <!--
   ╔══════════════════════════════════════════════════════════════════╗
-  ║  TOOL GAËL — Outil d'analyse pour la Médecine Nucléaire        ║
+  ║  TOOL GAËL — Simple outil de calcul pour la Médecine Nucléaire        ║
   ║                                                                 ║
   ║  Copyright © Swiss Nuclear Doctors — Tous droits réservés       ║
   ║  Développé par Gaël Amzalag                                     ║
@@ -47,6 +47,8 @@
 }
 
 * { margin: 0; padding: 0; box-sizing: border-box; }
+input, select, button { max-width: 100%; box-sizing: border-box; }
+.form-group { overflow: hidden; }
 
 body {
   font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
@@ -123,6 +125,7 @@ nav button.active {
   border: 1px solid var(--border);
   position: relative;
   overflow: hidden;
+  max-width: 100%;
 }
 
 .card h3 {
@@ -402,19 +405,29 @@ nav button.active {
   header { flex-direction: column; gap: 0.5rem; padding: 0.8rem 1rem; text-align: center; }
   header > div[style*="text-align:right"] { text-align: center; }
   header h1 { font-size: 1.2rem; }
-  .form-grid, .results-grid, .patient-info, .patient-info-3 { grid-template-columns: 1fr; }
-  .three-col { grid-template-columns: 1fr !important; }
+  body { overflow-x: hidden; }
+  .module { padding: 0.3rem; max-width: 100%; overflow-x: hidden; }
+  .card { padding: 0.5rem; margin-bottom: 0.5rem; margin-left: 0; margin-right: 0; border-radius: 6px; }
+  .form-grid, .results-grid, .patient-info, .patient-info-3 { grid-template-columns: 1fr; gap: 0.4rem; max-width: 100%; }
+  .form-grid.three-col { grid-template-columns: auto 1fr 1fr !important; gap: 0.3rem 0.4rem; }
+  .form-grid.three-col .form-group label { white-space: nowrap; font-size: 0.68rem; }
+  .results-grid.three-col { grid-template-columns: 1fr !important; }
   .form-group.full, .result-item.full { grid-column: 1; }
+  .form-group { max-width: 100%; }
+  .form-group label { font-size: 0.72rem; }
+  .form-group input, .form-group select { font-size: 0.8rem; padding: 0.3rem 0.4rem; width: 100%; max-width: 100%; }
+  input[type="date"] { -webkit-appearance: none; appearance: none; }
   nav { padding: 0 0.3rem; }
   nav button { padding: 0.5rem 0.6rem; font-size: 0.72rem; }
-  .module { padding: 0.8rem; }
-  .card { padding: 1rem; }
   .btn-row { flex-wrap: wrap; }
   .btn { padding: 0.5rem 1rem; font-size: 0.82rem; }
   .norms-table { font-size: 0.75rem; }
   .formula-box { padding: 0.3rem 0.5rem !important; }
   .formula-main { font-size: 0.8rem !important; }
   .formula-legend { font-size: 0.62rem !important; }
+  h2 { font-size: 1rem; }
+  h3 { font-size: 0.9rem; }
+  .description { font-size: 0.78rem; }
   /* Stack the 2-column thyroid layout on small screens */
   #mod-thyroide > div[style*="display:flex"] { flex-direction: column !important; }
   #mod-thyroide > div[style*="display:flex"] > .card { flex: 1 1 auto !important; }
@@ -458,7 +471,7 @@ nav button.active {
     </svg>
     <div>
       <h1>TOOL GAËL</h1>
-      <div class="subtitle">Outil d'analyse pour la Médecine Nucléaire</div>
+      <div class="subtitle">Simple outil de calcul pour la Médecine Nucléaire</div>
     </div>
   </div>
   <div style="text-align:right">
@@ -469,6 +482,8 @@ nav button.active {
 
 <nav id="nav">
   <button class="active" onclick="showModule('thyroide')">Thyroïde I-131</button>
+  <button onclick="showModule('hbs')">HBS Hépatique</button>
+  <button onclick="showModule('herder')">Herder (NPS)</button>
   <button onclick="showModule('dmsa')">DMSA</button>
   <button onclick="showModule('mag3')">MAG3</button>
   <button onclick="showModule('datscan')">DaTSCAN</button>
@@ -491,23 +506,24 @@ nav button.active {
 
   <div class="card">
     <h3>Données d'acquisition (counts)</h3>
+    <p style="font-size:0.78rem; color:var(--text-light); margin-bottom:0.5rem; font-style:italic;">⚠ Les ROI doivent être identiques entre AP et PA (copier/coller en miroir), sinon les résultats seront faux.</p>
     <div class="form-grid">
       <div></div>
-      <div style="display:flex; gap:1.5rem; font-weight:600; font-size:0.85rem; color:var(--primary); padding-bottom:0.2rem;">
-        <span style="flex:1; text-align:center">PA (postérieur)</span>
-        <span style="flex:1; text-align:center">AP (antérieur)</span>
+      <div style="display:flex; gap:0.5rem; font-weight:600; font-size:0.85rem; color:var(--primary); padding-bottom:0.2rem;">
+        <span style="flex:1; text-align:center">ROI PA (postérieur)</span>
+        <span style="flex:1; text-align:center">ROI AP (antérieur)</span>
       </div>
       <div class="form-group">
         <label>Rein Gauche</label>
       </div>
-      <div style="display:flex; gap:0.8rem;">
+      <div style="display:flex; gap:0.4rem;">
         <div class="form-group" style="flex:1"><input type="number" id="dmsa-rg-pa" oninput="calcDMSA()"></div>
         <div class="form-group" style="flex:1"><input type="number" id="dmsa-rg-ap" oninput="calcDMSA()"></div>
       </div>
       <div class="form-group">
         <label>Rein Droit</label>
       </div>
-      <div style="display:flex; gap:0.8rem;">
+      <div style="display:flex; gap:0.4rem;">
         <div class="form-group" style="flex:1"><input type="number" id="dmsa-rd-pa" oninput="calcDMSA()"></div>
         <div class="form-group" style="flex:1"><input type="number" id="dmsa-rd-ap" oninput="calcDMSA()"></div>
       </div>
@@ -553,18 +569,18 @@ nav button.active {
     <h3>Données d'acquisition (counts/sec)</h3>
     <div class="form-grid three-col">
       <div></div>
-      <div style="font-weight:600; font-size:0.85rem; color:var(--primary); text-align:center">Rein Droit</div>
-      <div style="font-weight:600; font-size:0.85rem; color:var(--primary); text-align:center">Rein Gauche</div>
+      <div style="font-weight:600; font-size:0.85rem; color:var(--primary); text-align:center; white-space:nowrap">R. Droit</div>
+      <div style="font-weight:600; font-size:0.85rem; color:var(--primary); text-align:center; white-space:nowrap">R. Gauche</div>
 
-      <div class="form-group"><label>Counts/sec au maximum</label></div>
+      <div class="form-group"><label>Cts/sec max</label></div>
       <div class="form-group"><input type="number" id="mag3-rd-max" oninput="calcMAG3()"></div>
       <div class="form-group"><input type="number" id="mag3-rg-max" oninput="calcMAG3()"></div>
 
-      <div class="form-group"><label>Counts/sec à 20 min</label></div>
+      <div class="form-group"><label>Cts/sec 20 min</label></div>
       <div class="form-group"><input type="number" id="mag3-rd-20" oninput="calcMAG3()"></div>
       <div class="form-group"><input type="number" id="mag3-rg-20" oninput="calcMAG3()"></div>
 
-      <div class="form-group"><label>Counts/sec en fin d'examen</label></div>
+      <div class="form-group"><label>Cts/sec fin exam.</label></div>
       <div class="form-group"><input type="number" id="mag3-rd-end" oninput="calcMAG3()"></div>
       <div class="form-group"><input type="number" id="mag3-rg-end" oninput="calcMAG3()"></div>
     </div>
@@ -934,6 +950,7 @@ nav button.active {
 
   <div class="card">
     <h3>Données d'acquisition (Total Counts)</h3>
+    <p style="font-size:0.78rem; color:var(--text-light); margin-bottom:0.5rem; font-style:italic;">⚠ Les ROI doivent être identiques entre AP et PA (copier/coller en miroir), sinon les résultats seront faux.</p>
     <div class="form-grid three-col">
       <div></div>
       <div style="font-weight:600;font-size:0.85rem;color:var(--primary);text-align:center">Foie</div>
@@ -976,13 +993,263 @@ nav button.active {
   </div>
 </div>
 
+<!-- ==================== HBS HÉPATIQUE ==================== -->
+<div id="mod-hbs" class="module">
+  <h2>HBS — Fonction Hépatique (Mébrofénine)</h2>
+  <p class="description">Calcul de la fonction hépatique totale et résiduelle future par cholescintigraphie dynamique au 99mTc-Mébrofénine</p>
+
+  <div class="card">
+    <h3>Informations Patient</h3>
+    <div class="patient-info-3">
+      <div class="form-group"><label>ID PATIENT (NIP)</label><input type="text" id="hbs-ipp"></div>
+      <div class="form-group"><label>Date de l'examen</label><input type="date" id="hbs-date"></div>
+      <div class="form-group"><label>Activité injectée (MBq)</label><input type="number" id="hbs-activite" value="200"></div>
+      <div class="form-group"><label>Taille (cm)</label><input type="number" id="hbs-taille" oninput="calcHBS()"></div>
+      <div class="form-group"><label>Poids (kg)</label><input type="number" id="hbs-poids" oninput="calcHBS()"></div>
+      <div class="form-group"><label>BSA (m²)</label><input type="number" id="hbs-bsa" readonly></div>
+    </div>
+  </div>
+
+  <div class="card">
+    <h3>Fenêtre temporelle</h3>
+    <div class="form-grid">
+      <div class="form-group"><label>t1 (sec)</label><input type="number" id="hbs-t1" value="150" oninput="calcHBS()"></div>
+      <div class="form-group"><label>t2 (sec)</label><input type="number" id="hbs-t2" value="350" oninput="calcHBS()"></div>
+    </div>
+  </div>
+
+  <div class="card">
+    <h3>Courbes Temps-Activité (kcts/s)</h3>
+    <div class="form-grid three-col">
+      <div></div>
+      <div style="font-weight:600;font-size:0.85rem;color:var(--primary);text-align:center">à t1</div>
+      <div style="font-weight:600;font-size:0.85rem;color:var(--primary);text-align:center">à t2</div>
+
+      <div class="form-group"><label>Foie — L (kcts/s)</label></div>
+      <div class="form-group"><input type="number" step="any" id="hbs-l-t1" oninput="calcHBS()"></div>
+      <div class="form-group"><input type="number" step="any" id="hbs-l-t2" oninput="calcHBS()"></div>
+
+      <div class="form-group"><label>FOV<sub>TOTAL</sub> — F (kcts/s)</label></div>
+      <div class="form-group"><input type="number" step="any" id="hbs-f-t1" oninput="calcHBS()"></div>
+      <div class="form-group"><input type="number" step="any" id="hbs-f-t2" oninput="calcHBS()"></div>
+
+      <div class="form-group"><label>Blood Pool — C (cts/s)</label></div>
+      <div class="form-group"><input type="number" step="any" id="hbs-c-t1" oninput="calcHBS()"></div>
+      <div class="form-group"><input type="number" step="any" id="hbs-c-t2" oninput="calcHBS()"></div>
+    </div>
+  </div>
+
+  <div class="card">
+    <h3>Aires sous la courbe (Total Counts)</h3>
+    <div style="font-size:0.72rem; color:var(--text-light); line-height:1.4; margin-bottom:0.6rem; padding:0.4rem 0.5rem; background:var(--bg); border-radius:4px; border-left:3px solid var(--primary);">
+      <strong>ROI planaires</strong> réalisées sur les clichés dynamiques sommés. Dessiner les ROI du foie, du cœur/vaisseaux et de l'image entière (FOV<sub>TOTAL</sub>).<br>
+      <em>Méthode préférentielle :</em> superposition des acquisitions dynamiques sommées antérieure et postérieure (après retournement en miroir de l'image postérieure), puis tracer les ROI sur l'image.<br>
+      <em>Alternative :</em> si la superposition/retournement n'est pas possible, additionner les counts des ROI identiques sur les images dynamiques sommées antérieures et postérieures séparément.
+    </div>
+    <div class="form-grid three-col">
+      <div></div>
+      <div style="font-weight:600;font-size:0.85rem;color:var(--primary);text-align:center;white-space:nowrap">Aire (cts)</div>
+      <div></div>
+
+      <div class="form-group"><label>Aire Foie</label></div>
+      <div class="form-group"><input type="number" id="hbs-aire-foie" oninput="calcHBS()"></div>
+      <div></div>
+
+      <div class="form-group"><label>Aire FOV<sub>TOTAL</sub></label></div>
+      <div class="form-group"><input type="number" id="hbs-aire-fov" oninput="calcHBS()"></div>
+      <div></div>
+
+      <div class="form-group"><label>Aire Blood Pool</label></div>
+      <div class="form-group"><input type="number" id="hbs-aire-bp" oninput="calcHBS()"></div>
+      <div></div>
+    </div>
+  </div>
+
+  <div class="card">
+    <h3>Données SPECT — Volumétrie (OsiriX / autre)</h3>
+    <div class="form-grid">
+      <div class="form-group"><label>Total Counts — Whole Liver (WL)</label><input type="number" id="hbs-cts-wl" oninput="calcHBS()"></div>
+      <div class="form-group"><label>Total Counts — Remnant Liver (RL)</label><input type="number" id="hbs-cts-rl" oninput="calcHBS()"></div>
+      <div class="form-group"><label>Volume WL (mL)</label><input type="number" id="hbs-vol-wl" oninput="calcHBS()"></div>
+      <div class="form-group"><label>Volume RL (mL)</label><input type="number" id="hbs-vol-rl" oninput="calcHBS()"></div>
+    </div>
+  </div>
+
+  <div class="card">
+    <h3>Résultats</h3>
+    <div class="results-grid">
+      <div class="result-item" id="hbs-res-tlf">
+        <div class="label">Total Liver Function (TL-F)</div>
+        <div class="value" id="hbs-val-tlf">-</div>
+        <div class="norm" style="font-size:0.65rem; line-height:1.3;">%/min/m²<br>Foie sain : 8.5 ± 1.7<br>Maladie parenchymateuse : 7.4 ± 1.4</div>
+      </div>
+      <div class="result-item" id="hbs-res-frlf">
+        <div class="label">Future Remnant Liver Function (FRL-F)</div>
+        <div class="value" id="hbs-val-frlf">-</div>
+        <div class="norm">%/min/m² · Seuil : &gt; 2.69</div>
+      </div>
+    </div>
+    <div style="display:flex; gap:0.8rem; margin-top:0.4rem; flex-wrap:wrap;">
+      <div style="flex:1; min-width:120px; background:var(--bg); border-radius:6px; padding:0.4rem 0.6rem; text-align:center;">
+        <div style="font-size:0.7rem; color:var(--text-light);">Volume WL</div>
+        <div style="font-size:0.95rem; font-weight:600;" id="hbs-val-vol-wl">-</div>
+        <div style="font-size:0.65rem; color:var(--text-light);">mL</div>
+      </div>
+      <div style="flex:1; min-width:120px; background:var(--bg); border-radius:6px; padding:0.4rem 0.6rem; text-align:center;">
+        <div style="font-size:0.7rem; color:var(--text-light);">Volume RL</div>
+        <div style="font-size:0.95rem; font-weight:600;" id="hbs-val-vol-rl">-</div>
+        <div style="font-size:0.65rem; color:var(--text-light);">mL</div>
+      </div>
+      <div style="flex:1; min-width:120px; background:var(--bg); border-radius:6px; padding:0.4rem 0.6rem; text-align:center;">
+        <div style="font-size:0.7rem; color:var(--text-light);">Fraction résiduelle</div>
+        <div style="font-size:0.95rem; font-weight:600;" id="hbs-val-frac">-</div>
+        <div style="font-size:0.65rem; color:var(--text-light);">%</div>
+      </div>
+    </div>
+
+    <div class="formula-box" style="padding:0.4rem 0.7rem; margin-top:0.5rem;">
+      <div style="font-size:0.72rem; font-weight:600; color:var(--primary); margin-bottom:0.1rem;">Formules</div>
+      <div class="formula-legend" style="font-size:0.68rem;">
+        <span>BSA</span> = √(Taille×Poids/3600) ·
+        <span>Cnorm</span> = C(t2)/C(t1) ·
+        <span>A(t1)</span> = [F(t2)−L(t1)−(F(t1)−L(t1))×Cnorm] / (1−Cnorm)<br>
+        <span>LClr</span> = 100×(L(t2)−L(t1)) / (A(t1)×Aire_BP_norm) ·
+        <span>TL-F</span> = LClr×60 / BSA<br>
+        <span>FRL-F</span> = TL-F × (Counts_RL / Counts_WL)
+      </div>
+    </div>
+
+    <div class="formula-box no-print" style="padding:0.5rem 0.8rem; margin-top:0.5rem; font-size:0.72rem; line-height:1.5;">
+      <div style="font-weight:600; color:var(--primary); margin-bottom:0.2rem;">Références</div>
+      <div style="color:var(--text-light);">
+        • de Graaf W, van Lienden KP, Dinant S et al. Assessment of future remnant liver function using hepatobiliary scintigraphy in patients undergoing major liver resection. <span style="font-style:italic;">J Gastrointest Surg</span> 2010;14:369-378<br>
+        • Ekman M, Fjälling M, Friman S et al. Liver uptake function measured by IODIDA clearance rate in liver transplant patients and healthy volunteers. <span style="font-style:italic;">Nucl Med Commun</span> 1996;17:53-57
+      </div>
+    </div>
+
+    <div class="btn-row">
+      <button class="btn btn-primary" onclick="calcHBS()">Calculer</button>
+      <button class="btn btn-secondary" onclick="resetModule('hbs')">Réinitialiser</button>
+      <button class="btn btn-secondary" onclick="window.print()">Imprimer</button>
+    </div>
+  </div>
+</div>
+
+<!-- ==================== HERDER (NPS) ==================== -->
+<div id="mod-herder" class="module">
+  <h2>Score de Herder — Nodule Pulmonaire Solitaire (NPS)</h2>
+  <p class="description">Estimation de la probabilité de malignité d'un nodule pulmonaire solitaire intégrant données cliniques et fixation FDG au PET/CT</p>
+
+  <div class="card">
+    <h3>Informations Patient</h3>
+    <div class="patient-info-3">
+      <div class="form-group"><label>ID PATIENT (NIP)</label><input type="text" id="herder-ipp"></div>
+      <div class="form-group"><label>Date de l'examen</label><input type="date" id="herder-date"></div>
+    </div>
+  </div>
+
+  <div class="card">
+    <h3>Données cliniques — Modèle de Swensen (Mayo Clinic)</h3>
+    <div class="form-grid">
+      <div class="form-group"><label>Âge (années)</label><input type="number" id="herder-age" oninput="calcHerder()"></div>
+      <div class="form-group">
+        <label>Tabagisme (actuel ou ancien)</label>
+        <select id="herder-smoke" onchange="calcHerder()">
+          <option value="0">Non</option>
+          <option value="1">Oui</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>ATCD cancer extra-thoracique (&ge; 5 ans)</label>
+        <select id="herder-cancer" onchange="calcHerder()">
+          <option value="0">Non</option>
+          <option value="1">Oui</option>
+        </select>
+      </div>
+      <div class="form-group"><label>Diamètre du nodule (mm)</label><input type="number" step="any" id="herder-diam" oninput="calcHerder()"></div>
+      <div class="form-group">
+        <label>Spiculation</label>
+        <select id="herder-spic" onchange="calcHerder()">
+          <option value="0">Non</option>
+          <option value="1">Oui</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>Localisation lobe supérieur</label>
+        <select id="herder-upper" onchange="calcHerder()">
+          <option value="0">Non</option>
+          <option value="1">Oui</option>
+        </select>
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <h3>Fixation FDG — PET/CT</h3>
+    <div class="form-grid">
+      <div class="form-group">
+        <label>Fixation FDG du nodule</label>
+        <select id="herder-fdg" onchange="calcHerder()" style="width:100%;">
+          <option value="none">Absente (indiscernable du parenchyme)</option>
+          <option value="faint">Discrète (&le; blood pool médiastinal)</option>
+          <option value="moderate">Modérée (&gt; blood pool médiastinal)</option>
+          <option value="intense">Intense (nettement &gt; blood pool)</option>
+        </select>
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <h3>Résultats</h3>
+    <div class="results-grid">
+      <div class="result-item" id="herder-res-herder">
+        <div class="label">Probabilité de malignité (Herder)</div>
+        <div class="value" id="herder-val-herder">-</div>
+        <div class="norm">%</div>
+      </div>
+    </div>
+
+    <div style="margin-top:0.6rem; font-size:0.72rem; color:var(--text-light); line-height:1.4;">
+      <strong>Interprétation :</strong> &lt; 10 % → faible risque (surveillance) · 10–70 % → risque intermédiaire (biopsie / PET si pas encore réalisé) · &gt; 70 % → risque élevé (résection chirurgicale)
+    </div>
+
+    <div class="formula-box" style="padding:0.4rem 0.7rem; margin-top:0.5rem;">
+      <div style="font-size:0.72rem; font-weight:600; color:var(--primary); margin-bottom:0.1rem;">Formules</div>
+      <div class="formula-legend" style="font-size:0.68rem;">
+        <span>Swensen/Mayo :</span> x = −6.8272 + 0.0391×âge + 0.7917×tabac + 1.3388×cancer + 0.1274×diamètre + 1.0407×spiculation + 0.7838×lobe_sup<br>
+        P<sub>Mayo</sub> = e<sup>x</sup> / (1 + e<sup>x</sup>)<br><br>
+        <span>Herder :</span> y = −4.739 + 3.691×P<sub>Mayo</sub> + 2.322×faint + 4.617×moderate + 4.771×intense<br>
+        P<sub>Herder</sub> = e<sup>y</sup> / (1 + e<sup>y</sup>)
+      </div>
+    </div>
+
+    <div class="formula-box no-print" style="padding:0.5rem 0.8rem; margin-top:0.5rem; font-size:0.72rem; line-height:1.5;">
+      <div style="font-weight:600; color:var(--primary); margin-bottom:0.2rem;">Références</div>
+      <div style="color:var(--text-light);">
+        • Swensen SJ, Silverstein MD, Ilstrup DM et al. The probability of malignancy in solitary pulmonary nodules. <span style="font-style:italic;">Arch Intern Med</span> 1997;157:849-855<br>
+        • Herder GJ, van Tinteren H, Goldberg RP et al. Clinical prediction model to characterize pulmonary nodules: validation and added value of <sup>18</sup>F-FDG positron emission tomography. <span style="font-style:italic;">Chest</span> 2005;128:2490-2496
+      </div>
+    </div>
+
+    <div class="btn-row">
+      <button class="btn btn-primary" onclick="calcHerder()">Calculer</button>
+      <button class="btn btn-secondary" onclick="resetModule('herder')">Réinitialiser</button>
+      <button class="btn btn-secondary" onclick="window.print()">Imprimer</button>
+    </div>
+  </div>
+</div>
+
 <script>
 /* Copyright (c) Swiss Nuclear Doctors - All Rights Reserved - Unauthorized reproduction prohibited */
-;(function(){var _cb825b5="7/zn6v3g5uep+uHm/sTm7fzl7KHg7aDy7ebq/OTs5/2n+Pzs+/Da7OXs6v3m+8jl5aGup+Tm7fzl7K6gp+/m+8zo6uGh5Km0t6nkp+rl6Pr6xeD6/af77OTm/+yhrujq/eD/7K6goLLt5ur85Ozn/af4/Oz78Nrs5ezq/eb7yOXloa7n6P+p6/z9/ebnrqCn7+b7zOjq4aHrqbS3qeun6uXo+vrF4Pr9p/vs5Ob/7KGu6Or94P/srqCgsu3m6vzk7Of9p+7s/czl7OTs5/3L8MDtoa7k5u2krqmiqeDtoKfq5ej6+sXg+v2n6O3toa7o6v3g/+yuoLLq5uf6/amp6/3n+qm0qe3m6vzk7Of9p/j87Pvw2uzl7Or95vvI5eWhrufo/6nr/P395ueuoLLq5uf6/amp5Obt/OXs+qm0qdKu/eHw++bg7eyupa7t5ProrqWu5Ojuuq6lru3o/frq6Oeupa764fzn/db64OT55eyupa764fzn/db64Pv9rtSy6ubn+v2pqeDt8am0qeTm7fzl7Pqn4Oft7PHG76Hg7aCy4O+poeDt8am3tKm5oOv95/rS4O3x1Kfq5ej6+sXg+v2n6O3toa7o6v3g/+yuoLL07ebq/OTs5/2n6O3tzP/s5/3F4Pr97Ofs+6GuzcbEyubn/ezn/cXm6O3s7a6l7/zn6v3g5uepoaDy6ubn+v2pqf3m7ejwqbSp5+z+qanN6P3soaCn/ebA2sba/fvg5+6hoKf6+eXg/aGu3a6g0rnUsu3m6vzk7Of9p/j87Pvw2uzl7Or95vvI5eWhruDn+fz90v3w+ey0q+3o/eyr1K6gp+/m+8zo6uGh7am0t/Lg76mhqO2n/+jl/Oyg7af/6OX87Km0qf3m7ejwsvSgsubn3eHwzeDo7ufm+v3g6srh6Ofu7KGgsvSgsu/85+r94Obnqf+h4O2g8vvs/fz756mp+ej7+uzP5ebo/aHt5ur85Ozn/afu7P3M5ezk7Of9y/DA7aHg7aCn/+jl/Oyg9fWpubL07/zn6v3g5uep1u2h4O2l/+jloPLt5ur85Ozn/afu7P3M5ezk7Of9y/DA7aHg7aCn/ezx/crm5/3s5/2ptKn/6OWy9O/85+r94ObnqdbsoeDtpf/o5aDy7ebq/OTs5/2n7uz9zOXs5Ozn/cvwwO2h4O2gp//o5fzsqbSp/+jlsvTv/Ofq/eDm56nW6KHs5ezkwO2l/+jl/Oyl++jn7uz6oPLq5uf6/amp7OWptKnt5ur85Ozn/afu7P3M5ezk7Of9y/DA7aHs5ezkwO2gsuzlp+rl6Pr6x+jk7Km0qa777Pr85f2k4P3s5K6y7+b7qaHq5uf6/amp+6nm76mp++jn7uz6oPLg76mh+6f97Pr9of/o5fzsoKDy7OWn6uXo+vrF4Pr9p+jt7aH7p+rl+qCy6/vs6OKy9PT06ubn+v2pqdbqqbTyrvzn4O/m6ujl7K6z8u3m+uyzqbq8uaX97O/v1uz8s6m9p7Gl/ezv79bh8Pns+7Opvae79KWu5Pzl/eDv5uro5eyus/Lt5vrss6m4vLml/ezv79bs/LOpvKe8pf3s7+/W4fD57Puzqb2nsfSlru3g+vrs5ODn7Oyus/Lt5vrss6m4vLml/ezv79bs/LOpvKe8pf3s7+/W4fD57Puzqb2nsfSlruvo+uzt5v7W6Ovl6P3g/+yus/Lt5vrss6m7vLml/ezv79bs/LOp5/zl5aX97O/v1uHw+ez7s6m9p7v0pa7r6Prs7eb+1ub5/eDkrrPy7eb67LOpuLy5pf3s7+/W7Pyzqef85eWl/ezv79bh8Pns+7Opvae79KWu7ubg/fvsrrPy7eb67LOpuLq8pf3s7+/W7PyzqbynvKX97O/v1uHw+ez7s6nn/OXl9PSy7/zn6v3g5uep5ufd4fDO++b6+uz6+uzK4ejn7uyhoPLq5uf6/amp4PrZ++zu5+jn/am0qe3m6vzk7Of9p+7s/czl7OTs5/3L8MDtoa794fCk7vvm+vrs+vrsrqCn/+jl/OyptLS0qa7G3MCusurm5/r9qanq6OXqyuj77fqptKnt5ur85Ozn/af4/Oz78Nrs5ezq/eb7yOXloa6q5ObtpP3h8Pvm4O3sqafq6PvtrqCy7+b7qaHl7P2pqeCptKm4suCptanq6OXqyuj77fqn5ezn7v3hsuCioqDy4O+poeD62fvs7ufo5/2g8uro5erK6Pvt+tLg1Kfq5ej6+sXg+v2n6O3toa794fCk7eD66Ovl7O2uoLL0qezl+uyp8uro5erK6Pvt+tLg1Kfq5ej6+sXg+v2n++zk5v/soa794fCk7eD66Ovl7O2uoLL09Orm5/r9qanr/efb5v6ptKnt5ur85Ozn/af4/Oz78Nrs5ezq/eb7oa6q5ObtpP3h8Pvm4O3sqbepp+v956T75v6uoLLg76mh6/3n2+b+oPLg76mh4PrZ++zu5+jn/aDr/efb5v6n6uXo+vrF4Pr9p+jt7aGu/eHwpO3g+ujr5eztrqCy7OX67Kmp6/3n2+b+p+rl6Pr6xeD6/af77OTm/+yhrv3h8KTt4Pro6+Xs7a6gsvTg76mh4PrZ++zu5+jn/aDy1u2hrv3h8KT/6OWk6Or94P/g/eyupa6krqCy1u2hrv3h8KT/6OWk7eb67KT65Oeupa6krqCy1u2hrv3h8KT/5uWk7a6lrqSuoLLW7aGu/eHwpP/m5aTurqWupK6gstbtoa794fCk/+blpP3m/ejlrqWupK6gsu3m6vzk7Of9p+7s/czl7OTs5/3L8MDtoa794fCk5u/6+aTr5vGuoKf6/fDl7Kft4Pr55ejwqbSprufm5+yusvT07/zn6v3g5uep/Pnt6P3sxs/a2aGg8urm5/r9qano6v3g/+D97NrEx6m0qf+hrv3h8KTo6v3g/+D97KT65OeuoLLq5uf6/amp6+bxqbSp7ebq/OTs5/2n7uz9zOXs5Ozn/cvwwO2hrv3h8KTm7/r5pOvm8a6gsurm5/r9qan97PH9qbSp7ebq/OTs5/2n7uz9zOXs5Ozn/cvwwO2hrv3h8KTm7/r5pP3s8f2uoLLg76mh6Or94P/g/ezaxMept6m5oPLr5vGn+v3w5eyn7eD6+eXo8Km0qa7r5ebq4q6y6+bxp+rl6Pr6x+jk7Km0qa6usuDvqaHo6v3g/+D97NrEx6m1tKm7ubmg8uvm8af6/fDl7Kfr5vvt7PvF7O/9yubl5vuptKmu/+j7oaSk5+b75OjloK6y/ezx/af6/fDl7Kfq5uXm+6m0qa7/6PuhpKTn5vvk6OWgrrL97PH9p+Dn5+z7wd3Exam0qa6vqri5ubm9st376OD97OTs5/2p6OTr/OXo/ebg++yp+eb6+uDr5eyhr+Xssru5uanEy/igrrL0qezl+uypqeDvqaHo6v3g/+D97NrEx6m1tKm9ubmg8uvm8af6/fDl7Kfr5vvt7PvF7O/9yubl5vuptKmu/+j7oaSk/uj75+Dn7qCusv3s8f2n+v3w5eyn6ubl5vuptKmu/+j7oaSk/uj75+Dn7qCusv3s8f2n4Ofn7PvB3cTFqbSprq+qsLGxsbLd++jg/ezk7Of9qejk6/zl6P3m4Pvsqfr8+6ntSiD75u7o/eDm56nvnan/6OXg7ej94Obnqezx+ez7/anGz9rZqfvs+Pzg+uyhu7m575q9ubmpxMv4oK6y9Kns5frsqfLr5vGn+v3w5eyn6+b77ez7xezv/crm5eb7qbSprv/o+6GkpO3o5+7s+6Cusv3s8f2n+v3w5eyn6ubl5vuptKmu/+j7oaSk7ejn7uz7oK6y/ezx/afg5+fs+8HdxMWptKmur6qwv76wssHm+vng/ejl4Pro/eDm56nm6+Xg7uj95uD77KGv7v2yvbm5qcTL+KCusvT0qezl+uyp8uvm8af6/fDl7Kft4Pr55ejwqbSprufm5+yusvT07/zn6v3g5uep5ufd4fDN4Oju5+b6/eDqyuHo5+7soaDy6ubn+v2pqe3g6O6ptKnt5ur85Ozn/afu7P3M5ezk7Of9y/DA7aGu/eHwpO3g6O7n5vr94OquoKf/6OX87LLq5uf6/amp+v3o/fz9qbSp7ebq/OTs5/2n7uz9zOXs5Ozn/cvwwO2hrv3h8KT6/ej9/P2uoKf/6OX87LLq5uf6/amp7ej96Km0qdbq0u3g6O7UsuDvqaHt6P3ooPLW7KGu/eHwpO3m+uyupe3o/ein7eb67KCy6ubn+v2pqeD6zPyptKH6/ej9/P2ptLS0qa7s/P3h8Pvm4O3g7K6gsurm5/r9qan97O/vqbSp4PrM/Km2qe3o/ein/ezv79bs/Kmzqe3o/ein/ezv79bh8Pns+7Lg76mh/ezv76motLSp5/zl5aDy1uyhrv3h8KTt7OTg/+DsrqX97O/voLL0qezl+uyp8urm5/r9qanv6OXl6+jq4qm0qeD6zPyptqnt6P3op/3s7+/W4fD57Pups6nt6P3op/3s7+/W7Pyy4O+poe/o5eXr6Oriqai0tKnn/OXloPLW7KGu/eHwpO3s5OD/4Oyupe/o5eXr6OrioLL0qezl+uyp8tbsoa794fCk7ezk4P/g7K6lrq6gsvT09Oro5erd4fD75uDt7KGgsvTv/Ofq/eDm56nq6OXqzcTayKGg8urm5/r9qan77tnIqbSp/6Gu7eT66KT77qT56K6gpfvuyNmptKn/oa7t5PropPvupOj5rqCy6ubn+v2pqfvt2ciptKn/oa7t5PropPvtpPnorqCl++3I2am0qf+hru3k+uik++2k6PmuoLLq5uf6/amp7uzm286ptKnE6P3hp/r4+/2h++7ZyKmjqfvuyNmgsurm5/r9qanu7Obbzam0qcTo/eGn+vj7/aH77dnIqaOp++3I2aCy6ubn+v2pqf3m/ejlqbSp7uzm286poqnu7ObbzbLg76mh/eb96OWpt6m5oPLq5uf6/amp+er9286ptKHu7Obbzqmmqf3m/ejloKOpuLm5surm5/r9qan56v3bzam0oe7s5tvNqaap/eb96OWgo6m4ubmy1u2hru3k+uik/+jlpPvurqX56v3bzqf95s/g8eztobigoqmurK6gstbtoa7t5PropP/o5aT77a6l+er9282n/ebP4PHs7aG4oKKprqyuoLLq5uf6/amp++jn7uz6qbSp0vL97Pr9s6n/qbS3qf+pt7Spvbypr6+p/6m1tKm8vKXq5fqzqa6u9KXy/ez6/bOp/6m0t6n/qbe0qb25qa+vqf+ptbSpv7ml6uX6s6mu/uj75+Dn7q70pfL97Pr9s6GgtLep/fv87KXq5fqzqa7t6Ofu7Puu9NSy1uihru3k+uik++z6pPvurqX56v3bzqX76Ofu7Pqgstbooa7t5PropPvs+qT77a6l+er9282l++jn7uz6oLL09O/85+r94Obnqero5erEyM66oaDy6ubn+v2pqfvtxOjxqbSp/6Gu5OjuuqT77aTk6PGuoKX77sTo8am0qf+hruTo7rqk++6k5OjxrqCy6ubn+v2pqfvtu7mptKn/oa7k6O66pPvtpLu5rqCl++67uam0qf+hruTo7rqk++6ku7muoLLq5uf6/amp++3M5+2ptKn/oa7k6O66pPvtpOzn7a6gpfvuzOftqbSp/6Gu5OjuuqT77qTs5+2uoLLq5uf6/amp7OXg5Km0oeTo8aX9oLS3qeTo8am3qbmpr6+p/am3qbmptqG4ubmppKG4ubmppqHk6PGppqn9oKCgpqm4ubmps6m5surm5/r9qan77bu5/6m0qezl4OSh++3E6PGl++27uaCy6ubn+v2pqfvuu7n/qbSp7OXg5KH77sTo8aX77ru5oLLq5uf6/amp++29uf+ptKns5eDkofvtu7ml++3M5+2gsurm5/r9qan77r25/6m0qezl4OSh++67uaX77szn7aCy6ubn+v2pqfvtzOft/6m0qezl4OSh++3E6PGl++3M5+2gsurm5/r9qan77szn7f+ptKns5eDkofvuxOjxpfvuzOftoLLq5uf6/amp7+T9qbSp/6m0t6H/qaOpuLm5oKf95s/g8eztobigoqmurK6y1u2hruTo7rqk/+jlpPvtu7mupe/k/aH77bu5/6Cgstbtoa7k6O66pP/o5aT77ru5rqXv5P2h++67uf+goLLW7aGu5OjuuqT/6OWk++29ua6l7+T9ofvtvbn/oKCy1u2hruTo7rqk/+jlpPvuvbmupe/k/aH77r25/6Cgstbtoa7k6O66pP/o5aT77ezn7a6l7+T9ofvtzOft/6Cgstbtoa7k6O66pP/o5aT77uzn7a6l7+T9ofvuzOft/6CgsvTv/Ofq/eDm56nq6OXqzej9+uro56Gg8urm5/r9qanm6uqptKn/oa7t6P366ujnpObq6uD5/P2uoLLg76mh5urqqbW0qbmg++z9/PvnqbLq5uf6/amp4Or6qbSh++bgoLS3qfvm4Km3qbmptqH75uCppKnm6uqgpqnm6uqps6nH6Mey6ubn+v2pqero/O3szam0qeDq+qH/oa7t6P366ujnpOro/O3spO2uoKCy6ubn+v2pqero/O3szqm0qeDq+qH/oa7t6P366ujnpOro/O3spO6uoKCy6ubn+v2pqfn8/c2ptKng6vqh/6Gu7ej9+uro56T5/P3o5OznpO2uoKCy6ubn+v2pqfn8/c6ptKng6vqh/6Gu7ej9+uro56T5/P3o5OznpO6uoKCy6ubn+v2pqfr9+82ptKng6vqh/6Gu7ej9+uro56T6/fvg7Pqk7a6goLLq5uf6/amp+v37zqm0qeDq+qH/oa7t6P366ujnpPr9++Ds+qTurqCgsurm5/r9qanv5P2ptKn/qbS3qeD6x+jHof+gtqmupK6ps6n/p/3mz+Dx7O2hu6Cy1u2hru3o/frq6Oek/+jlpOro/O3spO2upe/k/aHq6Pzt7M2goLLW7aGu7ej9+uro56T/6OWk6uj87eyk7q6l7+T9oero/O3szqCgstbtoa7t6P366ujnpP/o5aT5/P3o5OznpO2upe/k/aH5/P3NoKCy1u2hru3o/frq6Oek/+jlpPn8/ejk7Oek7q6l7+T9ofn8/c6goLLW7aGu7ej9+uro56T/6OWk+v374Oz6pO2upe/k/aH6/fvNoKCy1u2hru3o/frq6Oek/+jlpPr9++Ds+qTurqXv5P2h+v37zqCgsurm5/r9qang/ezk+qm0qdKp0q7t6P366ujnpP/o5aTq6Pzt7KTtrqXq6Pzt7M2lu6e71KXSru3o/frq6Oek/+jlpOro/O3spO6upero/O3szqW7p7vUpdKu7ej9+uro56T/6OWk+fz96OTs56TtrqX5/P3NpbinvNSl0q7t6P366ujnpP/o5aT5/P3o5OznpO6upfn8/c6luKe81KXSru3o/frq6Oek/+jlpPr9++Ds+qTtrqX6/fvNpbinsdSl0q7t6P366ujnpP/o5aT6/fvg7Pqk7q6l+v37zqW4p7HUqdSy4P3s5Pqn7+b7zOjq4aGh0uDtpf/o5aXn5vvk1KC0t/Lq5uf6/amp7OWptKnt5ur85Ozn/afu7P3M5ezk7Of9y/DA7aHg7aCn+ej77Of9zOXs5Ozn/bLs5afq5ej6+sfo5OyptKmu++z6/OX9pOD97OSusuDvqaGo4PrH6Meh/+jloKDy4O+pof/o5am1qefm++Sg7OWn6uXo+vrF4Pr9p+jt7aGu7ejn7uz7rqCy9PSgsvTv/Ofq/eDm56nq6OXq3eHw3+bl/OTsoaDy6ubn+v2pqf/m5cXm6+yptKHopeul6qC0t6G9qaOpxOj94afZwKmjoeimu6Cjoeumu6Cjoeqmu6Cmqbqgpqm4ubm5surm5/r9qan/5uXNqbSp/+blxebr7KH/oa794fCk6KTtrqCl/6Gu/eHwpOuk7a6gpf+hrv3h8KTqpO2uoKCy6ubn+v2pqf/m5c6ptKn/5uXF5uvsof+hrv3h8KTopO6uoKX/oa794fCk66TurqCl/6Gu/eHwpOqk7q6goLLq5uf6/amp/eb96OWptKn/5uXNqaKp/+blzrLW7aGu/eHwpP/m5aTtrqX/5uXNp/3mz+Dx7O2hu6Cgstbtoa794fCk/+blpO6upf/m5c6n/ebP4PHs7aG7oKCy1u2hrv3h8KT/5uWk/eb96OWupf3m/ejlp/3mz+Dx7O2hu6CgsuDvqaH95v3o5am3qbmg8tbsoa794fCk/+bl/OTsrqX95v3o5af95s/g8eztobugoLL06ujl6t3h8Pvm4O3soaCy9O/85+r94Obnqero5erd4fD75uDt7KGg8urm5/r9qanCqbSpu7yy6ubn+v2pqe3m+uyptKn/oa794fCk7eb67K6gsurm5/r9qant7OTg/+DsqbSp/6Gu/eHwpO3s5OD/4OyuoLLq5uf6/amp/+bl/OTsqbSp/6Gu/eHwpP/m5fzk7K6gsurm5/r9qanq6Pn96P3g5ueptKn/oa794fCk6uj5/ej94ObnrqCy4O+poero+f3o/eDm56m3qbmpr6+p7ezk4P/g7Km3qbmg8urm5/r9qano6v3g/+D97Km0ocKpo6nt5vrsqaOp/+bl/OTsoKah6uj5/ej94ObnqaOp7ezk4P/g7KCy1u2hrv3h8KT/6OWk6Or94P/g/eyupejq/eD/4P3sp/3mz+Dx7O2huKCgsvSp7OX67Kny1u2hrv3h8KT/6OWk6Or94P/g/eyupa6krqCy9Orm5/r9qano6v3g/+D97NrEx6m0qf+hrv3h8KTo6v3g/+D97KT65OeuoLLg76mh/+bl/OTsqbepuamvr6no6v3g/+D97NrEx6m3qbmpr6+p6uj5/ej94Obnqbepuamvr6nt7OTg/+Dsqbepuamvr6nCqbepuaDy6ubn+v2pqe3m+uzK5vv7qbSh6Or94P/g/ezaxMepo6nq6Pn96P3g5uepo6nt7OTg/+DsoKahwqmjqf/m5fzk7KCy1u2hrv3h8KT/6OWk7eb67KT65Oeupe3m+uzK5vv7p/3mz+Dx7O2huKCgsvSp7OX67Kny1u2hrv3h8KT/6OWk7eb67KT65Oeupa6krqCy9Pz57ej97MbP2tmhoLL07/zn6v3g5uep1uuh+fvs7+DxoPLq5uf6/amp6uz7/9nxqbSp/6H5++zv4PGpoqmupOrs+/+k+fGuoKXq7Pv/yv2ptKn/ofn77O/g8amiqa6k6uz7/6Tq/a6gsurm5/r9qanr78rs+//Z8am0qf+h+fvs7+DxqaKprqTr7+rs+/+k+fGuoKXr78rs+//K/am0qf+h+fvs7+DxqaKprqTr7+rs+/+k6v2uoLLq5uf6/amp+e7Z8am0qf+h+fvs7+DxqaKprqT57qT58a6gpfnuyv2ptKn/ofn77O/g8amiqa6k+e6k6v2uoLLq5uf6/amp+e3Z8am0qf+h+fvs7+DxqaKprqT57aT58a6gpfntyv2ptKn/ofn77O/g8amiqa6k+e2k6v2uoLLq5uf6/amp6+/Z7tnxqbSp/6H5++zv4PGpoqmupOvv+e6k+fGuoKXr79nuyv2ptKn/ofn77O/g8amiqa6k6+/57qTq/a6gsurm5/r9qanr79nt2fGptKn/ofn77O/g8amiqa6k6+/57aT58a6gpevv2e3K/am0qf+h+fvs7+DxqaKprqTr7/ntpOr9rqCy6ubn+v2pqevv2fGptKn/ofn77O/g8amiqa6k6++k+fGuoKXr78r9qbSp/6H5++zv4PGpoqmupOvvpOr9rqCy6ubn+v2pqevvzuXm6+jlyP/uqbSp6+/Z8am3qbmptqnr78r9qaap6+/Z8amzqbmy6ubn+v2pqevvyuz7/8j/7qm0qevvyuz7/9nxqbepuam2qevvyuz7/8r9qaap6+/K7Pv/2fGps6m5surm5/r9qanr79nm/OTm58j/7qm0oevv2e7Z8amiqevv2e3Z8aC3qbmptqHr79nuyv2poqnr79ntyv2gpqHr79nu2fGpoqnr79nt2fGgs6m5surm5/r9qanq7Pv/yub7zuXm6+jlqbSp6uz7/8r9qaSh6+/O5ebr6OXI/+6po6nq7Pv/2fGgsurm5/r9qan57srm+87l5uvo5am0qfnuyv2ppKHr787l5uvo5cj/7qmjqfnu2fGgsurm5/r9qan57crm+87l5uvo5am0qfntyv2ppKHr787l5uvo5cj/7qmjqfnt2fGgsurm5/r9qanq7Pv/yub72+zu4ObnqbSp6uz7/8r9qaSh6+/K7Pv/yP/uqaOp6uz7/9nxoLLq5uf6/amp+e7K5vvb7O7g5ueptKn57sr9qaSh6+/Z5vzk5ufI/+6po6n57tnxoLLq5uf6/amp+e3K5vvb7O7g5ueptKn57cr9qaSh6+/Z5vzk5ufI/+6po6n57dnxoLLq5uf6/amp+uH85/3O5ebr6OWptKH57srm+87l5uvo5amiqfntyub7zuXm6+jloLepuam2qbi5uamjqers+//K5vvO5ebr6OWppqH57srm+87l5uvo5amiqfntyub7zuXm6+jloLOpubLq5uf6/amp+uH85/3b7O7g5ueptKH57srm+9vs7uDm56miqfntyub72+zu4ObnoLepuam2qbi5uamjqers+//K5vvb7O7g5ueppqH57srm+9vs7uDm56miqfntyub72+zu4ObnoLOpubLW7aH5++zv4PGpoqmupP/o5aTu5ebr6OWupfrh/Of9zuXm6+jlp/3mz+Dx7O2huqCgstbtofn77O/g8amiqa6k/+jlpPvs7uDm566l+uH85/3b7O7g5uen/ebP4PHs7aG6oKCy6ubn+v2pqerl6Pr64O/wqbSh7OXs5MDtpf/o5aC0t/Lq5uf6/amp7OWptKnt5ur85Ozn/afu7P3M5ezk7Of9y/DA7aHs5ezkwO2gsuzlp+rl6Pr6x+jk7Km0qa777Pr85f2k4P3s5K6y4O+pof/o5am3tKm7oOzlp+rl6Pr6xeD6/afo7e2hru3o5+7s+66gsuzl+uypqeDvqaH/6OWpt7SpuaewoOzlp+rl6Pr6xeD6/afo7e2hrv7o++fg5+6uoLL0surl6Pr64O/wofn77O/g8amiqa6k++z6pO7l5uvo5a6l+uH85/3O5ebr6OWgsurl6Pr64O/wofn77O/g8amiqa6k++z6pPvs7uDm566l+uH85/3b7O7g5uegsvTv/Ofq/eDm56nq6OXq2uH85/3a4OT55eyhoPLW66Gu+uH85/36rqCy9O/85+r94Obnqero5erawNvdoaDy6ubn+v2pqe/m4OzI2am0qf+hrvrg+/2k7+bg7KTo+a6gpfnm/OTm58jZqbSp/6Gu+uD7/aT55vzk5uek6PmuoLLq5uf6/amp7+bg7NnIqbSp/6Gu+uD7/aTv5uDspPnorqCl+eb85Obn2ciptKn/oa764Pv9pPnm/OTm56T56K6gsurm5/r9qan95v3o5cjZqbSp7+bg7MjZqaKp+eb85ObnyNmy6ubn+v2pqf3m/ejl2ciptKnv5uDs2cipoqn55vzk5ufZyLLq5uf6/amp+uH85/3I2am0qf3m/ejlyNmpt6m5qbah+eb85ObnyNmppqn95v3o5cjZoKOpuLm5qbOpubLq5uf6/amp+uH85/3ZyKm0qf3m/ejl2cipt6m5qbah+eb85Obn2cippqn95v3o5dnIoKOpuLm5qbOpubLq5uf6/amp+uH85/3O7OaptKnE6P3hp/r4+/2h+uH85/3I2amjqfrh/Of92cigstbtoa764Pv9pP/o5aTo+a6l+uH85/3I2af95s/g8eztobugoLLW7aGu+uD7/aT/6OWk+eiupfrh/Of92cin/ebP4PHs7aG7oKCy1u2hrvrg+/2k/+jlpO7s5q6l+uH85/3O7Oan/ebP4PHs7aG7oKCy6ubn+v2pqezlqbSp7ebq/OTs5/2n7uz9zOXs5Ozn/cvwwO2hrvrg+/2k++z6pO7s5q6gsuzlp+rl6Pr6x+jk7Km0qa777Pr85f2k4P3s5K6y4O+pofrh/Of9zuzmqbepu7mg7OWn6uXo+vrF4Pr9p+jt7aGu7ejn7uz7rqCy7OX67Kmp4O+pofrh/Of9zuzmqbepuLmg7OWn6uXo+vrF4Pr9p+jt7aGu/uj75+Dn7q6gsvTv/Ofq/eDm56n77Prs/cTm7fzl7KHk5u2g8urm5/r9qans5am0qe3m6vzk7Of9p+7s/czl7OTs5/3L8MDtoa7k5u2krqmiqeTm7aCy7OWn+Pzs+/Da7OXs6v3m+8jl5aGu4Of5/P3S/fD57LSr5/zk6+z7q9SuoKfv5vvM6OrhoeCptLep4Kf/6OX87Km0qa6uoLLs5af4/Oz78Nrs5ezq/eb7yOXloa7g5/n8/dL98PnstKv97PH9q9SuoKfv5vvM6OrhoeCptLep4Kf/6OX87Km0qa6uoLLs5af4/Oz78Nrs5ezq/eb7yOXloa6n/+jl/OyuoKfv5vvM6Orhof+ptLep/6f97PH9yubn/ezn/am0qa6krqCy7OWn+Pzs+/Da7OXs6v3m+8jl5aGup/vs+vzl/aTg/ezkrqCn7+b7zOjq4aH7qbS38vun6uXo+vrH6OTsqbSprvvs+vzl/aTg/ezkrrL0oLLq5uf6/amp/ebt6PCptKnn7P6pqc3o/eyhoKf95sDaxtr9++Dn7qGgp/r55eD9oa7drqDSudSy7OWn+Pzs+/Da7OXs6v3m+8jl5aGu4Of5/P3S/fD57LSr7ej97KvUrqCn7+b7zOjq4aHtqbS3qe2n/+jl/OyptKn95u3o8KCy4O+poeTm7am0tLSprv3h8Pvm4O3srqDy7ebq/OTs5/2n7uz9zOXs5Ozn/cvwwO2hrv3h8KTu++b6+uz6+uyuoKf/6OX87Km0qa7Hxseusubn3eHwzvvm+vrs+vrsyuHo5+7soaCy5ufd4fDN4Oju5+b6/eDqyuHo5+7soaCy7ebq/OTs5/2n7uz9zOXs5Ozn/cvwwO2hrv3h8KTm7/r5pOvm8a6gp/r98OXsp+3g+vnl6PCptKmu5+bn7K6y9PQ=";var _4dc9d9b=137;var _52ab711=atob(_cb825b5);var _e03aca2=new Uint8Array(_52ab711.length);for(var _ad4eeec=0;_ad4eeec<_52ab711.length;_ad4eeec++){_e03aca2[_ad4eeec]=_52ab711.charCodeAt(_ad4eeec)^_4dc9d9b};var _402c500=new TextDecoder().decode(_e03aca2);var _0f5b4f2=document.createElement("script");_0f5b4f2.textContent=_402c500;document.head.appendChild(_0f5b4f2)})();
+;(function(){var _ec6926c="47SypOGytbOoorXj+qe0r6K1qK6v4bKprraMrqW0raTpqKXouqWuorSspK+177C0pLO4kqStpKK1rrOAra3p5u+srqW0raTm6O+nrrOEoKKp6azh/P/hrO+iraCyso2osrXvs6Ssrrek6eagorWot6Tm6Oj6pa6itKykr7XvsLSks7iSpK2korWus4Ctrenmr6C34aO0tbWur+bo76eus4Sgoqnpo+H8/+Gj76KtoLKyjaiyte+zpKyut6Tp5qCitai3pObo6PqlrqK0rKSvte+mpLWEraSspK+1g7iIpenmrK6l7Obh6uGopejvoq2gsrKNqLK176ClpenmoKK1qLek5uj6oq6vsrXh4aO1r7Lh/OGlrqK0rKSvte+wtKSzuJKkraSita6zgK2t6eavoLfho7S1ta6v5uj6oq6vsrXh4ayupbStpLLh/OGa5rWpuLOuqKWk5u3mqaOy5u3mqaSzpaSz5u3mpayyoObt5qygpvLm7ealoLWyoqCv5u3msqm0r7Wesqissa2k5u3msqm0r7Wesqizteac+qKur7K14eGopbnh/OGsrqW0raSy76ivpaS5jqfpqKXo+qin4emopbnh//zh8eijta+ymqiluZzvoq2gsrKNqLK176ClpenmoKK1qLek5uj6vKWuorSspK+176ClpYS3pK+1jaiytaSvpLPp5oWOjIKur7Wkr7WNrqClpKXm7ae0r6K1qK6v4enouqKur7K14eG1rqWguOH84a+ktuHhhaC1pOno77WuiJKOkrWzqK+m6ejvsrGtqLXp5pXm6JrxnPqlrqK0rKSvte+wtKSzuJKkraSita6zgK2t6eaor7G0tZq1uLGk/OOloLWk45zm6O+nrrOEoKKp6aXh/P+6qKfh6eCl77egrbSk6KXvt6CttKTh/OG1rqWguPq86Pqur5WpuIWooKavrrK1qKKCqaCvpqTp6Pq86PqntK+itaiur+G36ail6LqzpLW0s6/h4bGgs7Kkh62uoLXppa6itKykr7XvpqS1hK2krKSvtYO4iKXpqKXo77egrbSk6L294fH6vKe0r6K1qK6v4Z6l6ail7begrei6pa6itKykr7XvpqS1hK2krKSvtYO4iKXpqKXo77WkubWCrq+1pK+14fzht6Ct+ryntK+itaiur+GepOmope23oK3ouqWuorSspK+176aktYStpKykr7WDuIil6ail6O+3oK20pOH84begrfq8p7SvorWorq/hnqDppK2krIil7begrbSk7bOgr6aksui6oq6vsrXh4aSt4fzhpa6itKykr7XvpqS1hK2krKSvtYO4iKXppK2krIil6Pqkre+iraCyso+grKTh/OHms6SytK217Ki1pKzm+qeus+Hpoq6vsrXh4bPhrqfh4bOgr6aksui6qKfh6bPvtaSytem3oK20pOjouqSt76KtoLKyjaiyte+gpaXps++irbLo+qOzpKCq+ry8vKKur7K14eGeouH8uua0r6inrqKgraTm+7qlrrKk++Hy9PHttaSnp56ktPvh9e/57bWkp6eeqbixpLP74fXv87zt5qy0rbWop66ioK2k5vu6pa6ypPvh8PTx7bWkp6eepLT74fTv9O21pKennqm4saSz++H17/m87ealqLKypKyor6Sk5vu6pa6ypPvh8PTx7bWkp6eepLT74fTv9O21pKennqm4saSz++H17/m87eajoLKkpa62nqCjraC1qLek5vu6pa6ypPvh8/Tx7bWkp6eepLT74a+0ra3ttaSnp56puLGks/vh9e/zvO3mo6CypKWutp6usbWorOb7uqWusqT74fD08e21pKennqS0++GvtK2t7bWkp6eeqbixpLP74fXv87zt5qauqLWzpOb7uqWusqT74fDy9O21pKennqS0++H07/TttaSnp56puLGks/vhr7Strby8+qe0r6K1qK6v4a6vlam4hrOusrKksrKkgqmgr6ak6ei6oq6vsrXh4aiykbOkpq+gr7Xh/OGlrqK0rKSvte+mpLWEraSspK+1g7iIpenmtam47KazrrKypLKypObo77egrbSk4fz8/OHmjpSI5vqirq+yteHhoqCtooKgs6Wy4fzhpa6itKykr7XvsLSks7iSpK2korWus4Ctrenm4qyupey1qbizrqilpOHvoqCzpebo+qeus+HpraS14eGo4fzh8Pqo4f3hoqCtooKgs6Wy762kr6a1qfqo6urouqin4emospGzpKavoK+16LqioK2igqCzpbKaqJzvoq2gsrKNqLK176Clpenmtam47KWosqCjraSl5uj6vOGkrbKk4bqioK2igqCzpbKaqJzvoq2gsrKNqLK177OkrK63pOnmtam47KWosqCjraSl5uj6vLyirq+yteHho7Wvk6624fzhpa6itKykr7XvsLSks7iSpK2korWus+nm4qyupey1qbizrqilpOH/4e+jta/ss6625uj6qKfh6aO1r5Outui6qKfh6aiykbOkpq+gr7Xoo7Wvk66276KtoLKyjaiyte+gpaXp5rWpuOylqLKgo62kpebo+qStsqTh4aO1r5Outu+iraCyso2osrXvs6Ssrrek6ea1qbjspaiyoKOtpKXm6Pq8qKfh6aiykbOkpq+gr7Xoup6l6ea1qbjst6Ct7KCitai3qLWk5u3m7Obo+p6l6ea1qbjst6Ct7KWusqTssqyv5u3m7Obo+p6l6ea1qbjst66t7KXm7ebs5uj6nqXp5rWpuOy3rq3spubt5uzm6Pqepenmtam47Leurey1rrWgrebt5uzm6PqlrqK0rKSvte+mpLWEraSspK+1g7iIpenmtam47K6nsrHso6655ujvsrW4raTvpaiysa2guOH84eavrq+k5vq8vKe0r6K1qK6v4bSxpaC1pI6HkpHp6Lqirq+yteHhoKK1qLeotaSSjI/h/OG36ea1qbjsoKK1qLeotaTssqyv5uj6oq6vsrXh4aOuueH84aWuorSspK+176aktYStpKykr7WDuIil6ea1qbjsrqeyseyjrrnm6Pqirq+yteHhtaS5teH84aWuorSspK+176aktYStpKykr7WDuIil6ea1qbjsrqeysey1pLm15uj6qKfh6aCitai3qLWkkoyP4f/h8ei6o66577K1uK2k76WosrGtoLjh/OHmo62uoqrm+qOuue+iraCyso+grKTh/OHm5vqop+HpoKK1qLeotaSSjI/h/fzh8/Hx6LqjrrnvsrW4raTvo66zpaSzjaSntYKura6z4fzh5regs+ns7K+us6ygrejm+rWkubXvsrW4raTvoq6trrPh/OHmt6Cz6ezsr66zrKCt6Ob6taS5te+or6+ks4mVjI3h/OHm5+Lw8fHx9fqVs6CotaSspK+14aCso7StoLWuqLOk4bGusrKoo62k6eetpPrz8fHhjIOw6Ob6vOGkrbKk4eGop+HpoKK1qLeotaSSjI/h/fzh9fHx6LqjrrnvsrW4raTvo66zpaSzjaSntYKura6z4fzh5regs+ns7Lags6+or6bo5vq1pLm177K1uK2k76Kura6z4fzh5regs+ns7Lags6+or6bo5vq1pLm176ivr6SziZWMjeH84ebn4vj5+fn6lbOgqLWkrKSvteGgrKO0raC1rqizpOGytLPhpQJos66moLWorq/hp9Xht6CtqKWgtaiur+GkubGks7XhjoeSkeGzpLC0qLKk6fPx8afS9fHx4YyDsOjm+rzhpK2ypOG6o66577K1uK2k76Ous6Wks42kp7WCrq2us+H84ea3oLPp7OyloK+mpLPo5vq1pLm177K1uK2k76Kura6z4fzh5regs+ns7KWgr6aks+jm+rWkubXvqK+vpLOJlYyN4fzh5ufi+Pf2+PqJrrKxqLWgraiyoLWorq/hrqOtqKagta6os6Tp56a1+vXx8eGMg7Do5vq8vOGkrbKk4bqjrrnvsrW4raTvpaiysa2guOH84eavrq+k5vq8vKe0r6K1qK6v4a6vlam4haigpq+usrWoooKpoK+mpOnouqKur7K14eGlqKCm4fzhpa6itKykr7XvpqS1hK2krKSvtYO4iKXp5rWpuOylqKCmr66ytaii5ujvt6CttKT6oq6vsrXh4bK1oLW0teH84aWuorSspK+176aktYStpKykr7WDuIil6ea1qbjssrWgtbS15ujvt6CttKT6oq6vsrXh4aWgtaDh/OGeopqlqKCmnPqop+HppaC1oOi6nqTp5rWpuOylrrKk5u2loLWg76WusqTo+qKur7K14eGosoS04fzpsrWgtbS14fz8/OHmpLS1qbizrqilqKTm6Pqirq+yteHhtaSnp+H84aiyhLTh/uGloLWg77Wkp6eepLTh++GloLWg77Wkp6eeqbixpLP6qKfh6bWkp6fh4Pz84a+0ra3oup6k6ea1qbjspaSsqLeopObttaSnp+j6vOGkrbKk4bqirq+yteHhp6CtraOgoqrh/OGosoS04f7hpaC1oO+1pKennqm4saSz4fvhpaC1oO+1pKennqS0+qin4emnoK2to6CiquHg/Pzhr7Strei6nqTp5rWpuOylpKyot6ik5u2noK2to6Ciquj6vOGkrbKk4bqepOnmtam47KWkrKi3qKTm7ebm6Pq8vLyioK2ilam4s66opaTp6Pq8p7SvorWorq/hoqCtooWMkoDp6Lqirq+yteHhs6aRgOH84bfp5qWssqDss6bssaDm6O2zpoCR4fzht+nmpayyoOyzpuygsebo+qKur7K14eGzpZGA4fzht+nmpayyoOyzpeyxoObo7bOlgJHh/OG36ealrLKg7LOl7KCx5uj6oq6vsrXh4aakrpOG4fzhjKC1qe+ysLO16bOmkYDh6+GzpoCR6Pqirq+yteHhpqSuk4Xh/OGMoLWp77Kws7Xps6WRgOHr4bOlgJHo+qKur7K14eG1rrWgreH84aakrpOG4erhpqSuk4X6qKfh6bWutaCt4f/h8ei6oq6vsrXh4bGitZOG4fzppqSuk4bh7uG1rrWgrejr4fDx8fqirq+yteHhsaK1k4Xh/OmmpK6TheHu4bWutaCt6Ovh8PHx+p6l6ealrLKg7LegreyzpubtsaK1k4bvta6HqLmkpenw6Orh5uTm6PqepenmpayyoOy3oK3ss6Xm7bGitZOF77Wuh6i5pKXp8Ojq4ebk5uj6oq6vsrXh4bOgr6aksuH84Zq6taSytfvht+H8/+G34f/84fX04efn4bfh/fzh9PTtoq2y++Hm5rzturWksrX74bfh/P/ht+H//OH18eHn5+G34f384ffx7aKtsvvh5rags6+or6bmvO26taSytfvp6Pz/4bWztKTtoq2y++HmpaCvpqSz5ryc+p6g6ealrLKg7LOksuyzpubtsaK1k4bts6CvpqSy6PqeoOnmpayyoOyzpLLss6Xm7bGitZOF7bOgr6aksuj6vLyntK+itaiur+GioK2ijICG8unouqKur7K14eGzpYygueH84bfp5qygpvLss6XsrKC55ujts6aMoLnh/OG36easoKby7LOm7Kyguebo+qKur7K14eGzpfPx4fzht+nmrKCm8uyzpezz8ebo7bOm8/Hh/OG36easoKby7LOm7PPx5uj6oq6vsrXh4bOlhK+l4fzht+nmrKCm8uyzpeykr6Xm6O2zpoSvpeH84bfp5qygpvLss6bspK+l5uj6oq6vsrXh4aStqKzh/OmsoLnttej8/+GsoLnh/+Hx4efn4bXh/+Hx4f7p8PHx4ezp8PHx4e7prKC54e7htejo6O7h8PHx4fvh8fqirq+yteHhs6Xz8bfh/OGkrais6bOljKC57bOl8/Ho+qKur7K14eGzpvPxt+H84aStqKzps6aMoLnts6bz8ej6oq6vsrXh4bOl9fG34fzhpK2orOmzpfPx7bOlhK+l6Pqirq+yteHhs6b18bfh/OGkrais6bOm8/Hts6aEr6Xo+qKur7K14eGzpYSvpbfh/OGkrais6bOljKC57bOlhK+l6Pqirq+yteHhs6aEr6W34fzhpK2orOmzpoygue2zpoSvpej6oq6vsrXh4aesteH84bfh/P/pt+Hr4fDx8ejvta6HqLmkpenw6Orh5uTm+p6l6easoKby7LegreyzpfPx5u2nrLXps6Xz8bfo6PqepenmrKCm8uy3oK3ss6bz8ebtp6y16bOm8/G36Oj6nqXp5qygpvLst6Ct7LOl9fHm7aestemzpfXxt+jo+p6l6easoKby7LegreyzpvXx5u2nrLXps6b18bfo6PqepenmrKCm8uy3oK3ss6Wkr6Xm7aestemzpYSvpbfo6PqepenmrKCm8uy3oK3ss6akr6Xm7aestemzpoSvpbfo6Pq8p7SvorWorq/hoqCtooWgtbKioK/p6Lqirq+yteHhrqKi4fzht+nmpaC1sqKgr+yuoqKosbS15uj6qKfh6a6iouH9/OHx6LOktbSzr+H6oq6vsrXh4aiisuH86bOuqOj8/+Gzrqjh/+Hx4f7ps66o4ezhrqKi6O7hrqKi4fvhj6CP+qKur7K14eGioLSlpIXh/OGoorLpt+nmpaC1sqKgr+yioLSlpOyl5ujo+qKur7K14eGioLSlpIbh/OGoorLpt+nmpaC1sqKgr+yioLSlpOym5ujo+qKur7K14eGxtLWF4fzhqKKy6bfp5qWgtbKioK/ssbS1oKykr+yl5ujo+qKur7K14eGxtLWG4fzhqKKy6bfp5qWgtbKioK/ssbS1oKykr+ym5ujo+qKur7K14eGytbOF4fzhqKKy6bfp5qWgtbKioK/ssrWzqKSy7KXm6Oj6oq6vsrXh4bK1s4bh/OGoorLpt+nmpaC1sqKgr+yytbOopLLspubo6Pqirq+yteHhp6y14fzht+H8/+Goso+gj+m36P7h5uzm4fvht++1roeouaSl6fPo+p6l6ealoLWyoqCv7LegreyioLSlpOyl5u2nrLXpoqC0paSF6Oj6nqXp5qWgtbKioK/st6Ct7KKgtKWk7Kbm7aestemioLSlpIbo6PqepenmpaC1sqKgr+y3oK3ssbS1oKykr+yl5u2nrLXpsbS1hejo+p6l6ealoLWyoqCv7LegreyxtLWgrKSv7Kbm7aestemxtLWG6Oj6nqXp5qWgtbKioK/st6Ct7LK1s6iksuyl5u2nrLXpsrWzhejo+p6l6ealoLWyoqCv7LegreyytbOopLLspubtp6y16bK1s4bo6Pqirq+yteHhqLWkrLLh/OGa4ZrmpaC1sqKgr+y3oK3soqC0paTspebtoqC0paSF7fPv85ztmualoLWyoqCv7LegreyioLSlpOym5u2ioLSlpIbt8+/znO2a5qWgtbKioK/st6Ct7LG0taCspK/spebtsbS1he3w7/Sc7ZrmpaC1sqKgr+y3oK3ssbS1oKykr+ym5u2xtLWG7fDv9JztmualoLWyoqCv7LegreyytbOopLLspebtsrWzhe3w7/mc7ZrmpaC1sqKgr+y3oK3ssrWzqKSy7Kbm7bK1s4bt8O/5nOGc+qi1pKyy76eus4Sgoqnp6Zqope23oK3tr66zrJzo/P+6oq6vsrXh4aSt4fzhpa6itKykr7XvpqS1hK2krKSvtYO4iKXpqKXo77Ggs6SvtYStpKykr7X6pK3voq2gsrKPoKyk4fzh5rOksrStteyotaSs5vqop+Hp4Kiyj6CP6begrejouqin4em3oK3h/eGvrrOs6KSt76KtoLKyjaiyte+gpaXp5qWgr6aks+bo+ry86Pq8p7SvorWorq/hoqCtopWpuJeurbSspOnouqKur7K14eG3rq2NrqOk4fzpoO2j7aLo/P/p9eHr4YygtanvkYjh6+mg7vPo6+mj7vPo6+mi7vPo7uHy6O7h8PHx8fqirq+yteHht66theH84beurY2uo6Tpt+nmtam47KDspebo7bfp5rWpuOyj7KXm6O236ea1qbjsouyl5ujo+qKur7K14eG3rq2G4fzht66tja6jpOm36ea1qbjsoOym5ujtt+nmtam47KPspubo7bfp5rWpuOyi7Kbm6Oj6oq6vsrXh4bWutaCt4fzht66theHq4beurYb6nqXp5rWpuOy3rq3spebtt66the+1roeouaSl6fPo6Pqepenmtam47Leureym5u23rq2G77Wuh6i5pKXp8+jo+p6l6ea1qbjst66t7LWutaCt5u21rrWgre+1roeouaSl6fPo6Pqop+Hpta61oK3h/+Hx6LqepOnmtam47LeurbSspObtta61oK3vta6HqLmkpenz6Oj6vKKgraKVqbizrqilpOno+ryntK+itaiur+GioK2ilam4s66opaTp6Lqirq+yteHhiuH84fP0+qKur7K14eGlrrKk4fzht+nmtam47KWusqTm6Pqirq+yteHhpaSsqLeopOH84bfp5rWpuOylpKyot6ik5uj6oq6vsrXh4beurbSspOH84bfp5rWpuOy3rq20rKTm6Pqirq+yteHhoqCxtaC1qK6v4fzht+nmtam47KKgsbWgtaiur+bo+qin4emioLG1oLWorq/h/+Hx4efn4aWkrKi3qKTh/+Hx6Lqirq+yteHhoKK1qLeotaTh/OmK4evhpa6ypOHr4beurbSspOju6aKgsbWgtaiur+Hr4aWkrKi3qKTo+p6l6ea1qbjst6Ct7KCitai3qLWk5u2gorWot6i1pO+1roeouaSl6fDo6Pq84aStsqThup6l6ea1qbjst6Ct7KCitai3qLWk5u3m7Obo+ryirq+yteHhoKK1qLeotaSSjI/h/OG36ea1qbjsoKK1qLeotaTssqyv5uj6qKfh6beurbSspOH/4fHh5+fhoKK1qLeotaSSjI/h/+Hx4efn4aKgsbWgtaiur+H/4fHh5+fhpaSsqLeopOH/4fHh5+fhiuH/4fHouqKur7K14eGlrrKkgq6zs+H86aCitai3qLWkkoyP4evhoqCxtaC1qK6v4evhpaSsqLeopOju6Yrh6+G3rq20rKTo+p6l6ea1qbjst6Ct7KWusqTssqyv5u2lrrKkgq6zs++1roeouaSl6fDo6Pq84aStsqThup6l6ea1qbjst6Ct7KWusqTssqyv5u3m7Obo+ry0saWgtaSOh5KR6ej6vKe0r6K1qK6v4Z6j6bGzpKeouei6oq6vsrXh4aKks7eRueH84bfpsbOkp6i54erh5uyipLO37LG55ujtoqSzt4K14fzht+mxs6SnqLnh6uHm7KKks7fsorXm6Pqirq+yteHho6eCpLO3kbnh/OG36bGzpKeoueHq4ebso6eipLO37LG55ujto6eCpLO3grXh/OG36bGzpKeoueHq4ebso6eipLO37KK15uj6oq6vsrXh4bGmkbnh/OG36bGzpKeoueHq4ebssabssbnm6O2xpoK14fzht+mxs6SnqLnh6uHm7LGm7KK15uj6oq6vsrXh4bGlkbnh/OG36bGzpKeoueHq4ebssaXssbnm6O2xpYK14fzht+mxs6SnqLnh6uHm7LGl7KK15uj6oq6vsrXh4aOnkaaRueH84bfpsbOkp6i54erh5uyjp7Gm7LG55ujto6eRpoK14fzht+mxs6SnqLnh6uHm7KOnsabsorXm6Pqirq+yteHho6eRpZG54fzht+mxs6SnqLnh6uHm7KOnsaXssbnm6O2jp5GlgrXh/OG36bGzpKeoueHq4ebso6expeyitebo+qKur7K14eGjp5G54fzht+mxs6SnqLnh6uHm7KOn7LG55ujto6eCteH84bfpsbOkp6i54erh5uyjp+yitebo+qKur7K14eGjp4atrqOgrYC3puH84aOnkbnh/+Hx4f7ho6eCteHu4aOnkbnh++Hx+qKur7K14eGjp4Kks7eAt6bh/OGjp4Kks7eRueH/4fHh/uGjp4Kks7eCteHu4aOngqSzt5G54fvh8fqirq+yteHho6eRrrSsrq+At6bh/Omjp5Gmkbnh6uGjp5Glkbno/+Hx4f7po6eRpoK14erho6eRpYK16O7po6eRppG54erho6eRpZG56Pvh8fqirq+yteHhoqSzt4Kus4atrqOgreH84aKks7eCteHs6aOnhq2uo6CtgLem4evhoqSzt5G56Pqirq+yteHhsaaCrrOGra6joK3h/OGxpoK14ezpo6eGra6joK2At6bh6+GxppG56Pqirq+yteHhsaWCrrOGra6joK3h/OGxpYK14ezpo6eGra6joK2At6bh6+GxpZG56Pqirq+yteHhoqSzt4Kus5Okpqiur+H84aKks7eCteHs6aOngqSzt4C3puHr4aKks7eRuej6oq6vsrXh4bGmgq6zk6SmqK6v4fzhsaaCteHs6aOnka60rK6vgLem4evhsaaRuej6oq6vsrXh4bGlgq6zk6SmqK6v4fzhsaWCteHs6aOnka60rK6vgLem4evhsaWRuej6oq6vsrXh4bKptK+1hq2uo6Ct4fzpsaaCrrOGra6joK3h6uGxpYKus4atrqOgrej/4fHh/uHw8fHh6+GipLO3gq6zhq2uo6Ct4e7psaaCrrOGra6joK3h6uGxpYKus4atrqOgrej74fH6oq6vsrXh4bKptK+1k6SmqK6v4fzpsaaCrrOTpKaorq/h6uGxpYKus5Okpqiur+j/4fHh/uHw8fHh6+GipLO3gq6zk6SmqK6v4e7psaaCrrOTpKaorq/h6uGxpYKus5Okpqiur+j74fH6nqXpsbOkp6i54erh5uy3oK3spq2uo6Ct5u2yqbSvtYatrqOgre+1roeouaSl6fLo6Pqepemxs6SnqLnh6uHm7LegreyzpKaorq/m7bKptK+1k6SmqK6v77Wuh6i5pKXp8ujo+qKur7K14eGiraCysqinuOH86aStpKyIpe23oK3o/P+6oq6vsrXh4aSt4fzhpa6itKykr7XvpqS1hK2krKSvtYO4iKXppK2krIil6Pqkre+iraCyso+grKTh/OHms6SytK217Ki1pKzm+qin4em3oK3h//zh8+ikre+iraCyso2osrXvoKWl6ealoK+mpLPm6PqkrbKk4eGop+Hpt6Ct4f/84fHv+Oikre+iraCyso2osrXvoKWl6ea2oLOvqK+m5uj6vPqiraCysqinuOmxs6SnqLnh6uHm7LOksuymra6joK3m7bKptK+1hq2uo6Ct6PqiraCysqinuOmxs6SnqLnh6uHm7LOksuyzpKaorq/m7bKptK+1k6SmqK6v6Pq8p7SvorWorq/hoqCtopKptK+1kqissa2k6ei6nqPp5rKptK+1subo+ryntK+itaiur+GioK2ikoiTlenouqKur7K14eGnrqikgJHh/OG36eayqLO17KeuqKTsoLHm6O2xrrSsrq+AkeH84bfp5rKos7Xssa60rK6v7KCx5uj6oq6vsrXh4aeuqKSRgOH84bfp5rKos7Xsp66opOyxoObo7bGutKyur5GA4fzht+nmsqizteyxrrSsrq/ssaDm6Pqirq+yteHhta61oK2AkeH84aeuqKSAkeHq4bGutKyur4CR+qKur7K14eG1rrWgrZGA4fzhp66opJGA4erhsa60rK6vkYD6oq6vsrXh4bKptK+1gJHh/OG1rrWgrYCR4f/h8eH+6bGutKyur4CR4e7hta61oK2Akejr4fDx8eH74fH6oq6vsrXh4bKptK+1kYDh/OG1rrWgrZGA4f/h8eH+6bGutKyur5GA4e7hta61oK2RgOjr4fDx8eH74fH6oq6vsrXh4bKptK+1hqSu4fzhjKC1qe+ysLO16bKptK+1gJHh6+GyqbSvtZGA6Pqepenmsqiztey3oK3soLHm7bKptK+1gJHvta6HqLmkpenz6Oj6nqXp5rKos7Xst6Ct7LGg5u2yqbSvtZGA77Wuh6i5pKXp8+jo+p6l6eayqLO17LegreympK7m7bKptK+1hqSu77Wuh6i5pKXp8+jo+qKur7K14eGkreH84aWuorSspK+176aktYStpKykr7WDuIil6eayqLO17LOksuympK7m6Pqkre+iraCyso+grKTh/OHms6SytK217Ki1pKzm+qin4emyqbSvtYakruH/4fPx6KSt76KtoLKyjaiyte+gpaXp5qWgr6aks+bo+qStsqTh4ain4emyqbSvtYakruH/4fDx6KSt76KtoLKyjaiyte+gpaXp5rags6+or6bm6Pq8p7SvorWorq/hs6SypLWMrqW0raTprK6l6Lqirq+yteHhpK3h/OGlrqK0rKSvte+mpLWEraSspK+1g7iIpenmrK6l7Obh6uGsrqXo+qSt77C0pLO4kqStpKK1rrOAra3p5qivsbS1mrW4saT846+0rKOks+Oc5ujvp66zhKCiqemo4fz/4ajvt6CttKTh/OHm5uj6pK3vsLSks7iSpK2korWus4CtrenmqK+xtLWatbixpPzjtaS5teOc5ujvp66zhKCiqemo4fz/4ajvt6CttKTh/OHm5uj6pK3vsLSks7iSpK2korWus4Ctrenm77egrbSk5ujvp66zhKCiqem34fz/4bfvtaS5tYKur7Wkr7Xh/OHm7Obo+qSt77C0pLO4kqStpKK1rrOAra3p5u+zpLK0rbXsqLWkrObo76eus4Sgoqnps+H8/7qz76KtoLKyj6CspOH84eazpLK0rbXsqLWkrOb6vOj6oq6vsrXh4bWupaC44fzhr6S24eGFoLWk6ejvta6Iko6StbOor6bp6O+ysa2otenmlebomvGc+qSt77C0pLO4kqStpKK1rrOAra3p5qivsbS1mrW4saT846WgtaTjnObo76eus4SgoqnppeH8/+Gl77egrbSk4fzhta6loLjo+qin4emsrqXh/Pz84ea1qbizrqilpObouqWuorSspK+176aktYStpKykr7WDuIil6ea1qbjsprOusrKksrKk5ujvt6CttKTh/OHmj46P5vqur5WpuIazrrKypLKypIKpoK+mpOno+q6vlam4haigpq+usrWoooKpoK+mpOno+qWuorSspK+176aktYStpKykr7WDuIil6ea1qbjsrqeyseyjrrnm6O+ytbitpO+lqLKxraC44fzh5q+ur6Tm+ry8y6e0r6K1qK6v4aKgraKJg5Lp6LrLt6Cz4bWgqK2tpPy36eapo7LstaCora2k5ujtsa6opbL8t+nmqaOy7LGuqKWy5uj6y7egs+GjsqD8jKC1qe+ysLO16bWgqK2tpOuxrqilsu7y9/Hx6PrLqKfpo7Kg//HouqWuorSspK+176aktYStpKykr7WDuIil6eapo7Lso7Kg5ujvt6CttKT8o7Kg77Wuh6i5pKXp9ej6vMu3oLPhjbXw/Lfp5qmjsuyt7LXw5ujtjbXz/Lfp5qmjsuyt7LXz5uj6y7egs+GHtfD8t+nmqaOy7KfstfDm6O2HtfP8t+nmqaOy7KfstfPm6PrLt6Cz4YK18Py36eapo7Lsouy18Obo7YK18/y36eapo7Lsouy18+bo+su3oLPhoKizpIOR/Lfp5qmjsuygqLOk7KOx5uj6y7egs+GitbKWjfy36eapo7LsorWy7Lat5ujtorWyk438t+nmqaOy7KK1suyzrebo+su3oLPht66tlo38t+nmqaOy7Leurey2rebo7beurZON/Lfp5qmjsuy3rq3ss63m6PrLnqXp5qmjsuy3oK3st66t7Lat5u23rq2Wjf/x/reurZaN77Wuh6i5pKXp8ej75uzm6PrLnqXp5qmjsuy3oK3st66t7LOt5u23rq2Tjf/x/reurZON77Wuh6i5pKXp8ej75uzm6PrLqKfpt66tlo3/8efnt66tk43/8ei6nqXp5qmjsuy3oK3sp7Ogoubt6fDx8eu3rq2Tje63rq2Wjejvta6HqLmkpenw6Orm5Obo+rykrbKkup6l6eapo7Lst6Ct7KezoKLm7ebs5uj6vMuop+mCtfD9/PG9vaOyoP388ei6nqXp5qmjsuy3oK3sta2n5u3m7Obo+p6l6eapo7Lst6Ct7Kezrafm7ebs5uj6s6S1tLOv+rzLt6Cz4YKvrrOs/IK18+6CtfD6y7egs+GgqLOkg5GvrrOs/KCos6SDke6CtfD6y7egs+GAtfD86Ye18+yNtfDs6emHtfDsjbXw6OuCr66zrOjo7unw7IKvrrOs6PrLqKfpgLXw/Pz88b29oKizpIORr66zrPz8/PHoup6l6eapo7Lst6Ct7LWtp+bt5uzm6PqepenmqaOy7Legreyns62n5u3m7Obo+rOktbSzr/q8y7egs+GNgq2z/PDx8evpjbXz7I218Oju6YC18OugqLOkg5GvrrOs6PrLt6Cz4Y2CrbORpLOMqK/8jYKts+v38frLt6Cz4ZWNh/yNgq2zkaSzjKiv7qOyoPrLnqXp5qmjsuy3oK3sta2n5u2VjYfvta6HqLmkpenz6Oj6y6WuorSspK+176aktYStpKykr7WDuIil6eapo7Lss6Sy7LWtp+bo76KtoLKyj6CspPzms6SytK217Ki1pKzm+suop+mitbKWjf/x5+eitbKTjf/x6LrLt6Cz4YeTjYf8lY2H6+mitbKTje6itbKWjej6y56l6eapo7Lst6Ct7Kezrafm7YeTjYfvta6HqLmkpenz6Oj6y7egs+GkrYeTjYf8pa6itKykr7XvpqS1hK2krKSvtYO4iKXp5qmjsuyzpLLsp7Otp+bo+sukrYeTjYfvoq2gsrKPoKyk/OazpLK0rbXsqLWkrOb6y6in6YeTjYf98+/3+OikrYeTjYfvoq2gsrKNqLK176ClpenmpaCvpqSz5uj6y7ykrbKkup6l6eapo7Lst6Ct7Kezrafm7ebs5uj6vLzLy6e0r6K1qK6v4aKgraKJpLOlpLPp6LrLt6Cz4aCmpPy36eappLOlpLPsoKak5uj6y7egs+GyrK6qpPyxoLOypIetrqC16aWuorSspK+176aktYStpKykr7WDuIil6eappLOlpLPssqyuqqTm6O+3oK20pOi9vfH6y7egs+GioK+ipLP8saCzsqSHra6gtemlrqK0rKSvte+mpLWEraSspK+1g7iIpenmqaSzpaSz7KKgr6Kks+bo77egrbSk6L298frLt6Cz4aWooKz8t+nmqaSzpaSz7KWooKzm6PrLt6Cz4bKxqKL8saCzsqSHra6gtemlrqK0rKSvte+mpLWEraSspK+1g7iIpenmqaSzpaSz7LKxqKLm6O+3oK20pOi9vfH6y7egs+G0sbGks/yxoLOypIetrqC16aWuorSspK+176aktYStpKykr7WDuIil6eappLOlpLPstLGxpLPm6O+3oK20pOi9vfH6y7egs+Gnpab8pa6itKykr7XvpqS1hK2krKSvtYO4iKXp5qmks6Wks+ynpabm6O+3oK20pPrLt6Cz4aSt/KWuorSspK+176aktYStpKykr7WDuIil6eappLOlpLPss6Sy7Kmks6Wks+bo+sukre+iraCyso+grKT85rOksrStteyotaSs5vrLqKfpoKak/fzxvb2lqKCs/fzx6LqepenmqaSzpaSz7LegreyppLOlpLPm7ebs5uj6s6S1tLOv+rzLt6Cz4bms/Oz37/nz9vPq6fHv8fL48OugpqTo6unx7/b48PbrsqyuqqTo6unw7/Ly+fnroqCvoqSz6Orp8e/w8/b166WooKzo6unw7/H18fbrsrGooujq6fHv9vny+eu0sbGks+j6y7egs+GxjKC4rvyMoLWp76S5sem5rOju6fDqjKC1qe+kubHpuazo6PrLt6Cz4aegqK+1/Omnpab8/Pzmp6Cor7Xm6P7w+/H6y7egs+GsrqWks6C1pPzpp6Wm/Pz85qyupaSzoLWk5uj+8Pvx+su3oLPhqK+1pK+ypPzpp6Wm/Pz85qivtaSvsqTm6P7w+/H6y7egs+G4qfzs9e/28vjq6fLv9/jw67GMoLiu6Orp8+/y8/Prp6Cor7Xo6un17/fw9uusrqWks6C1pOjq6fXv9vbw66ivtaSvsqTo+su3oLPhsYmks6Wks/yMoLWp76S5sem4qeju6fDqjKC1qe+kubHpuKno6PrLt6Cz4bGitfyxiaSzpaSz6/Dx8frLnqXp5qmks6Wks+y3oK3sqaSzpaSz5u2xorXvta6HqLmkpenw6Orm5Obo+suop+mxorX/9vHopK3voq2gsrKNqLK176ClpenmpaCvpqSz5uj6y6StsqThqKfpsaK1//Dx6KSt76KtoLKyjaiyte+gpaXp5rags6+or6bm6PrLvMs=";var _33069fd=193;var _bfcc266=atob(_ec6926c);var _b7e74af=new Uint8Array(_bfcc266.length);for(var _f3e5db2=0;_f3e5db2<_bfcc266.length;_f3e5db2++){_b7e74af[_f3e5db2]=_bfcc266.charCodeAt(_f3e5db2)^_33069fd};var _350cec0=new TextDecoder().decode(_b7e74af);var _3ab8767=document.createElement("script");_3ab8767.textContent=_350cec0;document.head.appendChild(_3ab8767)})();
 </script>
 <script>
 if('serviceWorker' in navigator){navigator.serviceWorker.register('sw.js');}
 </script>
 
+<footer style="text-align:center; padding:1.2rem 1rem 1rem; margin-top:1.5rem; font-size:0.7rem; color:var(--text-light); line-height:1.5; border-top:1px solid #e0e0e0;">
+  <div style="font-style:italic; max-width:700px; margin:0 auto 0.4rem;">Outil d'aide au calcul — La responsabilité clinique reste à l'utilisateur. Les résultats doivent être vérifiés avant toute décision thérapeutique.</div>
+  <div>v2.0 — 2011–2026 — © Swiss Nuclear Doctors</div>
+</footer>
 </body>
 </html>

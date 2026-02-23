@@ -1,7 +1,7 @@
 {
   "name": "TOOL GAËL — Médecine Nucléaire",
   "short_name": "TOOL GAËL",
-  "description": "Outil d'analyse pour la Médecine Nucléaire",
+  "description": "Simple outil de calcul pour la Médecine Nucléaire",
   "start_url": "./index.html",
   "display": "standalone",
   "background_color": "#f4f6f9",
