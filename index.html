@@ -2296,19 +2296,19 @@ document.addEventListener('DOMContentLoaded',function(){
 </style>
 
 <div id="mod-petvas" class="module">
-  <h2>PETVAS &amp; TVS — Vascularite des grands vaisseaux</h2>
-  <p class="description">Cotez chaque territoire de 0 à 3 par rapport au foie. Le PETVAS (9 territoires, 0–27) et le TVS à 14 territoires (Meller, 0–42) se calculent en même temps.</p>
+  <h2 data-i18n="petvas-title">PETVAS &amp; TVS — Vascularite des grands vaisseaux</h2>
+  <p class="description" data-i18n="petvas-desc">Cotez chaque territoire de 0 à 3 par rapport au foie. Le PETVAS (9 territoires, 0–27) et le TVS à 14 territoires (Meller, 0–42) se calculent en même temps.</p>
 
   <div class="petvas-wrap">
-    <div class="pv-banner" id="pvExampleBanner">Exemple pré-rempli (patient fictif). Cliquez sur « Remettre à zéro » pour coter votre patient.</div>
+    <div class="pv-banner" id="pvExampleBanner" data-i18n="petvas-banner">Exemple pré-rempli (patient fictif). Cliquez sur « Remettre à zéro » pour coter votre patient.</div>
 
     <div class="pv-grid">
       <section class="pv-sheet" aria-label="Fiche de cotation">
         <div class="pv-legend">
-          <span><i class="pv-sw" style="background:var(--pv-g0);color:var(--pv-g0-fg)">0</i>Pas de fixation (&lt; pool sanguin)</span>
-          <span><i class="pv-sw" style="background:var(--pv-g1);color:var(--pv-g1-fg)">1</i>&lt; foie</span>
-          <span><i class="pv-sw" style="background:var(--pv-g2);color:var(--pv-g2-fg)">2</i>= foie · vascularite possible</span>
-          <span><i class="pv-sw" style="background:var(--pv-g3);color:var(--pv-g3-fg)">3</i>&gt; foie · vascularite active</span>
+          <span><i class="pv-sw" style="background:var(--pv-g0);color:var(--pv-g0-fg)">0</i><span data-i18n="petvas-leg-0">Pas de fixation (&lt; pool sanguin)</span></span>
+          <span><i class="pv-sw" style="background:var(--pv-g1);color:var(--pv-g1-fg)">1</i><span data-i18n="petvas-leg-1">&lt; foie</span></span>
+          <span><i class="pv-sw" style="background:var(--pv-g2);color:var(--pv-g2-fg)">2</i><span data-i18n="petvas-leg-2">= foie · vascularite possible</span></span>
+          <span><i class="pv-sw" style="background:var(--pv-g3);color:var(--pv-g3-fg)">3</i><span data-i18n="petvas-leg-3">&gt; foie · vascularite active</span></span>
         </div>
         <div id="pvSheet"></div>
       </section>
@@ -2316,7 +2316,7 @@ document.addEventListener('DOMContentLoaded',function(){
       <aside>
         <div class="pv-card">
           <div class="pv-score">
-            <div class="pv-lbl">PETVAS<small>9 territoires · Grayson 2018</small></div>
+            <div class="pv-lbl" data-i18n="petvas-lbl-p">PETVAS<small>9 territoires · Grayson 2018</small></div>
             <div class="pv-val"><span id="pvPetvas">0</span><small> / 27</small></div>
           </div>
           <div class="pv-bar"><i id="pvPetvasBar"></i></div>
@@ -2324,23 +2324,23 @@ document.addEventListener('DOMContentLoaded',function(){
         </div>
         <div class="pv-card">
           <div class="pv-score">
-            <div class="pv-lbl">TVS<small>14 territoires · Meller 2003</small></div>
+            <div class="pv-lbl" data-i18n="petvas-lbl-t">TVS<small>14 territoires · Meller 2003</small></div>
             <div class="pv-val"><span id="pvTvs">0</span><small> / 42</small></div>
           </div>
           <div class="pv-bar"><i id="pvTvsBar"></i></div>
           <p class="pv-note" id="pvTvsNote"></p>
         </div>
         <div class="pv-card">
-          <div class="pv-score"><div class="pv-lbl">Territoires par grade<small>15 territoires uniques</small></div></div>
+          <div class="pv-score"><div class="pv-lbl" data-i18n="petvas-lbl-c">Territoires par grade<small>15 territoires uniques</small></div></div>
           <div class="pv-counts" id="pvCounts" style="margin-top:10px"></div>
           <p class="pv-note" style="margin-top:10px" id="pvPosNote"></p>
         </div>
         <div class="pv-card">
           <div class="pv-actions">
-            <button class="pv-btn primary" id="pvCopyBtn" type="button">Copier pour le compte rendu</button>
-            <button class="pv-btn" id="pvResetBtn" type="button">Remettre à zéro</button>
+            <button class="pv-btn primary" id="pvCopyBtn" type="button" data-i18n="petvas-btn-copy">Copier pour le compte rendu</button>
+            <button class="pv-btn" id="pvResetBtn" type="button" data-i18n="petvas-btn-reset">Remettre à zéro</button>
           </div>
-          <label for="pvReport" class="pv-note" style="display:block;margin:10px 0 4px">Texte généré</label>
+          <label for="pvReport" class="pv-note" style="display:block;margin:10px 0 4px" data-i18n="petvas-lbl-report">Texte généré</label>
           <textarea id="pvReport" readonly></textarea>
           <p class="pv-note" id="pvCopyMsg" aria-live="polite"></p>
         </div>
@@ -2349,8 +2349,8 @@ document.addEventListener('DOMContentLoaded',function(){
 
     <section class="pv-ref" aria-label="Repères d'interprétation">
       <div class="pv-card">
-        <h3>Lecture d'un territoire</h3>
-        <ul>
+        <h3 data-i18n="petvas-ref-h1">Lecture d'un territoire</h3>
+        <ul data-i18n="petvas-ref-ul1">
           <li><b>Grade 3</b> : positif pour une vascularite active (EANM/SNMMI 2018).</li>
           <li><b>Grade 2</b> : vascularite possible. La plupart des études considèrent la TEP positive dès le grade 2.</li>
           <li><b>Grades 0–1</b> : négatif.</li>
@@ -2358,16 +2358,16 @@ document.addEventListener('DOMContentLoaded',function(){
         </ul>
       </div>
       <div class="pv-card">
-        <h3>Seuils publiés</h3>
-        <ul>
+        <h3 data-i18n="petvas-ref-h2">Seuils publiés</h3>
+        <ul data-i18n="petvas-ref-ul2">
           <li><b>PETVAS ≥ 10</b> : maladie active vs inactive, sensibilité 60 %, spécificité 80 % (Galli 2022).</li>
           <li><b>PETVAS ≥ 20</b> : rechute plus fréquente (Grayson 2018, cohorte mixte ACG + Takayasu). Non confirmé par Galli 2022 ni Billet 2024.</li>
           <li><b>TVS</b> : pas de seuil diagnostique validé. Un TVS élevé au diagnostic est associé à la progression de l'aorte thoracique (Moreel 2023).</li>
         </ul>
       </div>
       <div class="pv-card">
-        <h3>Conditions de validité</h3>
-        <ul>
+        <h3 data-i18n="petvas-ref-h3">Conditions de validité</h3>
+        <ul data-i18n="petvas-ref-ul3">
           <li>Acquisition à 60 min minimum, idéalement 90–120 min (EULAR 2023).</li>
           <li>Glycémie &lt; 7 mmol/L souhaitée, &lt; 10 mmol/L acceptable.</li>
           <li>Idéalement avant ou dans les 3 jours suivant le début des corticoïdes.</li>
@@ -2376,86 +2376,255 @@ document.addEventListener('DOMContentLoaded',function(){
       </div>
     </section>
 
-    <p class="pv-footer">Sources : Thibault T et al., Front Med 2024;11:1469964 · Grayson PC et al., Arthritis Rheumatol 2018;70:439–49 · Meller J et al., EJNMMI 2003;30:730–6 · Galli E et al., Rheumatology 2022;61:4809–16 · Slart RHJA et al., EJNMMI 2018;45:1250–69 · Dejaco C et al., Ann Rheum Dis 2024;83:741–51. Outil d'aide au calcul, ne remplace pas l'interprétation clinique.</p>
+    <p class="pv-footer" data-i18n="petvas-footer">Sources : Thibault T et al., Front Med 2024;11:1469964 · Grayson PC et al., Arthritis Rheumatol 2018;70:439–49 · Meller J et al., EJNMMI 2003;30:730–6 · Galli E et al., Rheumatology 2022;61:4809–16 · Slart RHJA et al., EJNMMI 2018;45:1250–69 · Dejaco C et al., Ann Rheum Dis 2024;83:741–51. Outil d'aide au calcul, ne remplace pas l'interprétation clinique.</p>
   </div>
 </div>
 
 <script>
 (function(){
 'use strict';
-const PV_T=[
-  {g:"Aorte",id:"aasc",n:"Aorte ascendante",p:1,t:1},
-  {g:"Aorte",id:"arch",n:"Crosse aortique",p:1,t:1},
-  {g:"Aorte",id:"adesc",n:"Aorte thoracique descendante",p:1,t:1},
-  {g:"Aorte",id:"aabd",n:"Aorte abdominale",p:1,t:1},
-  {g:"Troncs supra-aortiques",id:"tbc",n:"Tronc brachiocéphalique",p:1,t:0},
-  {g:"Troncs supra-aortiques",id:"carD",n:"Carotide droite",p:1,t:1},
-  {g:"Troncs supra-aortiques",id:"carG",n:"Carotide gauche",p:1,t:1},
-  {g:"Troncs supra-aortiques",id:"scD",n:"Sous-clavière droite",p:1,t:1},
-  {g:"Troncs supra-aortiques",id:"scG",n:"Sous-clavière gauche",p:1,t:1},
-  {g:"Membres supérieurs",id:"axD",n:"Axillaire droite",p:0,t:1},
-  {g:"Membres supérieurs",id:"axG",n:"Axillaire gauche",p:0,t:1},
-  {g:"Membres inférieurs",id:"ilD",n:"Iliaque droite",p:0,t:1},
-  {g:"Membres inférieurs",id:"ilG",n:"Iliaque gauche",p:0,t:1},
-  {g:"Membres inférieurs",id:"feD",n:"Fémorale droite",p:0,t:1},
-  {g:"Membres inférieurs",id:"feG",n:"Fémorale gauche",p:0,t:1}
+var PV_I18N={
+ fr:{
+  g:{'Aorte':'Aorte','Troncs supra-aortiques':'Troncs supra-aortiques','Membres supérieurs':'Membres supérieurs','Membres inférieurs':'Membres inférieurs'},
+  t:{aasc:'Aorte ascendante',arch:'Crosse aortique',adesc:'Aorte thoracique descendante',aabd:'Aorte abdominale',tbc:'Tronc brachiocéphalique',carD:'Carotide droite',carG:'Carotide gauche',scD:'Sous-clavière droite',scG:'Sous-clavière gauche',axD:'Axillaire droite',axG:'Axillaire gauche',ilD:'Iliaque droite',ilG:'Iliaque gauche',feD:'Fémorale droite',feG:'Fémorale gauche'},
+  n20:"Au-dessus du seuil de rechute de Grayson 2018 (valeur prédictive non confirmée depuis).",
+  n10:"Au-dessus du seuil d’activité de Galli 2022 (Se 60 %, Sp 80 %).",
+  n0:"Sous le seuil d’activité de Galli 2022.",
+  nT:"Pas de seuil validé. À suivre en valeur relative d’un examen à l’autre.",
+  gw:'grade',none:'aucun',
+  pP:'TEP positive',pV:'Vascularite possible',pN:'TEP négative',
+  mP:'Au moins un territoire de grade 3.',mV:'Au moins un grade 2, aucun grade 3.',mN:'Aucun territoire ≥ 2.',
+  rH:'Cotation visuelle de la fixation vasculaire (référence hépatique, grades 0–3).',
+  rT:'TVS (14 territoires, Meller)',r3:'Grade 3 (> foie)',r2:'Grade 2 (= foie)',r1:'Grade 1 (< foie)',
+  cp:'Texte copié.',cs:'Texte sélectionné : copiez-le avec Ctrl+C ou ⌘C.'
+ },
+ en:{
+  g:{'Aorte':'Aorta','Troncs supra-aortiques':'Supra-aortic trunks','Membres supérieurs':'Upper limbs','Membres inférieurs':'Lower limbs'},
+  t:{aasc:'Ascending aorta',arch:'Aortic arch',adesc:'Descending thoracic aorta',aabd:'Abdominal aorta',tbc:'Brachiocephalic trunk',carD:'Right carotid',carG:'Left carotid',scD:'Right subclavian',scG:'Left subclavian',axD:'Right axillary',axG:'Left axillary',ilD:'Right iliac',ilG:'Left iliac',feD:'Right femoral',feG:'Left femoral'},
+  n20:'Above Grayson 2018 relapse threshold (predictive value not confirmed since).',
+  n10:'Above Galli 2022 activity threshold (Se 60%, Sp 80%).',
+  n0:'Below Galli 2022 activity threshold.',
+  nT:'No validated threshold. To be followed as a relative value between examinations.',
+  gw:'grade',none:'none',
+  pP:'PET positive',pV:'Possible vasculitis',pN:'PET negative',
+  mP:'At least one grade 3 territory.',mV:'At least one grade 2, no grade 3.',mN:'No territory ≥ 2.',
+  rH:'Visual scoring of vascular uptake (hepatic reference, grades 0–3).',
+  rT:'TVS (14 territories, Meller)',r3:'Grade 3 (> liver)',r2:'Grade 2 (= liver)',r1:'Grade 1 (< liver)',
+  cp:'Text copied.',cs:'Text selected: copy it with Ctrl+C or ⌘C.'
+ },
+ de:{
+  g:{'Aorte':'Aorta','Troncs supra-aortiques':'Supraaortale Äste','Membres supérieurs':'Obere Extremitäten','Membres inférieurs':'Untere Extremitäten'},
+  t:{aasc:'Aufsteigende Aorta',arch:'Aortenbogen',adesc:'Absteigende thorakale Aorta',aabd:'Abdominale Aorta',tbc:'Truncus brachiocephalicus',carD:'Rechte Karotis',carG:'Linke Karotis',scD:'Rechte Subklavia',scG:'Linke Subklavia',axD:'Rechte Axillaris',axG:'Linke Axillaris',ilD:'Rechte Iliaka',ilG:'Linke Iliaka',feD:'Rechte Femoralis',feG:'Linke Femoralis'},
+  n20:'Über dem Rückfall-Schwellenwert von Grayson 2018 (Vorhersagewert seitdem nicht bestätigt).',
+  n10:'Über dem Aktivitätsschwellenwert von Galli 2022 (Se 60 %, Sp 80 %).',
+  n0:'Unter dem Aktivitätsschwellenwert von Galli 2022.',
+  nT:'Kein validierter Schwellenwert. Als relativer Wert von Untersuchung zu Untersuchung zu verfolgen.',
+  gw:'Grad',none:'keines',
+  pP:'PET positiv',pV:'Mögliche Vaskulitis',pN:'PET negativ',
+  mP:'Mindestens ein Territorium mit Grad 3.',mV:'Mindestens ein Grad 2, kein Grad 3.',mN:'Kein Territorium ≥ 2.',
+  rH:'Visuelle Bewertung der vaskulären Aufnahme (hepatische Referenz, Grad 0–3).',
+  rT:'TVS (14 Territorien, Meller)',r3:'Grad 3 (> Leber)',r2:'Grad 2 (= Leber)',r1:'Grad 1 (< Leber)',
+  cp:'Text kopiert.',cs:'Text markiert: kopieren Sie ihn mit Strg+C oder ⌘C.'
+ },
+ it:{
+  g:{'Aorte':'Aorta','Troncs supra-aortiques':'Tronchi sopra-aortici','Membres supérieurs':'Arti superiori','Membres inférieurs':'Arti inferiori'},
+  t:{aasc:'Aorta ascendente',arch:'Arco aortico',adesc:'Aorta toracica discendente',aabd:'Aorta addominale',tbc:'Tronco brachiocefalico',carD:'Carotide destra',carG:'Carotide sinistra',scD:'Succlavia destra',scG:'Succlavia sinistra',axD:'Ascellare destra',axG:'Ascellare sinistra',ilD:'Iliaca destra',ilG:'Iliaca sinistra',feD:'Femorale destra',feG:'Femorale sinistra'},
+  n20:'Sopra la soglia di recidiva di Grayson 2018 (valore predittivo non confermato da allora).',
+  n10:'Sopra la soglia di attività di Galli 2022 (Se 60 %, Sp 80 %).',
+  n0:'Sotto la soglia di attività di Galli 2022.',
+  nT:"Nessuna soglia validata. Da seguire come valore relativo da un esame all’altro.",
+  gw:'grado',none:'nessuno',
+  pP:'PET positivo',pV:'Vasculite possibile',pN:'PET negativo',
+  mP:'Almeno un territorio di grado 3.',mV:'Almeno un grado 2, nessun grado 3.',mN:'Nessun territorio ≥ 2.',
+  rH:'Valutazione visiva della captazione vascolare (riferimento epatico, gradi 0–3).',
+  rT:'TVS (14 territori, Meller)',r3:'Grado 3 (> fegato)',r2:'Grado 2 (= fegato)',r1:'Grado 1 (< fegato)',
+  cp:'Testo copiato.',cs:"Testo selezionato: copiarlo con Ctrl+C o ⌘C."
+ }
+};
+var PV_T=[
+  {g:'Aorte',id:'aasc',p:1,t:1},{g:'Aorte',id:'arch',p:1,t:1},{g:'Aorte',id:'adesc',p:1,t:1},{g:'Aorte',id:'aabd',p:1,t:1},
+  {g:'Troncs supra-aortiques',id:'tbc',p:1,t:0},{g:'Troncs supra-aortiques',id:'carD',p:1,t:1},{g:'Troncs supra-aortiques',id:'carG',p:1,t:1},
+  {g:'Troncs supra-aortiques',id:'scD',p:1,t:1},{g:'Troncs supra-aortiques',id:'scG',p:1,t:1},
+  {g:'Membres supérieurs',id:'axD',p:0,t:1},{g:'Membres supérieurs',id:'axG',p:0,t:1},
+  {g:'Membres inférieurs',id:'ilD',p:0,t:1},{g:'Membres inférieurs',id:'ilG',p:0,t:1},
+  {g:'Membres inférieurs',id:'feD',p:0,t:1},{g:'Membres inférieurs',id:'feG',p:0,t:1}
 ];
-const PV_EX={aasc:3,arch:2,adesc:2,aabd:2,tbc:1,carD:1,carG:1,scD:3,scG:3,axD:3,axG:2,ilD:1,ilG:1,feD:1,feG:0};
-const PV_S={};
-PV_T.forEach(x=>PV_S[x.id]=PV_EX[x.id]??0);
+var PV_EX={aasc:3,arch:2,adesc:2,aabd:2,tbc:1,carD:1,carG:1,scD:3,scG:3,axD:3,axG:2,ilD:1,ilG:1,feD:1,feG:0};
+var PV_S={};
+PV_T.forEach(function(x){PV_S[x.id]=PV_EX[x.id]!==undefined?PV_EX[x.id]:0;});
 
-const pvSheet=document.getElementById("pvSheet");
-let pvCur=null,pvBox=null;
-PV_T.forEach(x=>{
-  if(x.g!==pvCur){pvCur=x.g;pvBox=document.createElement("div");pvBox.className="pv-group";pvBox.innerHTML=`<h3>${x.g}</h3>`;pvSheet.appendChild(pvBox);}
-  const r=document.createElement("div");r.className="pv-row";
-  r.innerHTML=`<div class="pv-name"><b>${x.n}</b></div>
-   <div class="pv-tags"><span class="pv-tag ${x.p?'on':''}">PETVAS</span><span class="pv-tag ${x.t?'on':''}">TVS</span></div>
-   <div class="pv-seg" role="group" aria-label="Grade ${x.n}">${[0,1,2,3].map(g=>`<button type="button" id="pvb-${x.id}-${g}" data-id="${x.id}" data-g="${g}" aria-pressed="false">${g}</button>`).join("")}</div>`;
-  pvBox.appendChild(r);
-});
+var pvSheet=document.getElementById('pvSheet');
 
-pvSheet.addEventListener("click",e=>{
-  const b=e.target.closest("button[data-id]");if(!b)return;
+function pvLang(){var L=window._currentGlobalLang||'fr';return PV_I18N[L]||PV_I18N.fr;}
+
+function pvBuildSheet(){
+  var tr=pvLang();
+  pvSheet.innerHTML='';
+  var cur=null,box=null;
+  PV_T.forEach(function(x){
+    var gName=tr.g[x.g]||x.g;
+    if(x.g!==cur){cur=x.g;box=document.createElement('div');box.className='pv-group';box.innerHTML='<h3>'+gName+'</h3>';pvSheet.appendChild(box);}
+    var tName=tr.t[x.id]||x.id;
+    var r=document.createElement('div');r.className='pv-row';
+    r.innerHTML='<div class="pv-name"><b>'+tName+'</b></div>'
+      +'<div class="pv-tags"><span class="pv-tag '+(x.p?'on':'')+'">'+'PETVAS</span><span class="pv-tag '+(x.t?'on':'')+'">TVS</span></div>'
+      +'<div class="pv-seg" role="group" aria-label="'+tName+'">'
+      +[0,1,2,3].map(function(g){return '<button type="button" id="pvb-'+x.id+'-'+g+'" data-id="'+x.id+'" data-g="'+g+'" aria-pressed="false">'+g+'</button>';}).join('')
+      +'</div>';
+    box.appendChild(r);
+  });
+}
+
+pvSheet.addEventListener('click',function(e){
+  var b=e.target.closest('button[data-id]');if(!b)return;
   PV_S[b.dataset.id]=+b.dataset.g;
-  document.getElementById("pvExampleBanner").hidden=true;
+  document.getElementById('pvExampleBanner').hidden=true;
   pvRender();
 });
 
-function pvSum(k){return PV_T.filter(x=>x[k]).reduce((a,x)=>a+PV_S[x.id],0);}
-function pvPill(cls,txt){return `<span class="pv-pill ${cls}">${txt}</span>`;}
+function pvSum(k){return PV_T.filter(function(x){return x[k];}).reduce(function(a,x){return a+PV_S[x.id];},0);}
+function pvPill(cls,txt){return '<span class="pv-pill '+cls+'">'+txt+'</span>';}
+
 function pvRender(){
-  PV_T.forEach(x=>[0,1,2,3].forEach(g=>document.getElementById(`pvb-${x.id}-${g}`).setAttribute("aria-pressed",PV_S[x.id]===g)));
-  const p=pvSum("p"),t=pvSum("t");
-  document.getElementById("pvPetvas").textContent=p;
-  document.getElementById("pvTvs").textContent=t;
-  document.getElementById("pvPetvasBar").style.width=(p/27*100)+"%";
-  document.getElementById("pvTvsBar").style.width=(t/42*100)+"%";
-  let pn;
-  if(p>=20) pn=pvPill("act","≥ 20")+" Au-dessus du seuil de rechute de Grayson 2018 (valeur prédictive non confirmée depuis).";
-  else if(p>=10) pn=pvPill("pos","≥ 10")+" Au-dessus du seuil d'activité de Galli 2022 (Se 60 %, Sp 80 %).";
-  else pn=pvPill("neg","< 10")+" Sous le seuil d'activité de Galli 2022.";
-  document.getElementById("pvPetvasNote").innerHTML=pn;
-  document.getElementById("pvTvsNote").textContent="Pas de seuil validé. À suivre en valeur relative d'un examen à l'autre.";
-  const c=[0,0,0,0];PV_T.forEach(x=>c[PV_S[x.id]]++);
-  document.getElementById("pvCounts").innerHTML=c.map((n,g)=>`<div style="background:var(--pv-g${g});color:var(--pv-g${g}-fg)">${n}<small>grade ${g}</small></div>`).join("");
-  const act=PV_T.filter(x=>PV_S[x.id]===3).map(x=>x.n.toLowerCase());
-  const pos=PV_T.filter(x=>PV_S[x.id]===2).map(x=>x.n.toLowerCase());
-  document.getElementById("pvPosNote").innerHTML=act.length?pvPill("act","TEP positive")+" Au moins un territoire de grade 3.":pos.length?pvPill("pos","Vascularite possible")+" Au moins un grade 2, aucun grade 3.":pvPill("neg","TEP négative")+" Aucun territoire ≥ 2.";
-  const line=g=>PV_T.filter(x=>PV_S[x.id]===g).map(x=>x.n.toLowerCase()).join(", ")||"aucun";
-  document.getElementById("pvReport").value=
-`Cotation visuelle de la fixation vasculaire (référence hépatique, grades 0–3).
-PETVAS = ${p}/27. TVS (14 territoires, Meller) = ${t}/42.
-Grade 3 (> foie) : ${line(3)}.
-Grade 2 (= foie) : ${line(2)}.
-Grade 1 (< foie) : ${line(1)}.`;
+  var tr=pvLang();
+  PV_T.forEach(function(x){[0,1,2,3].forEach(function(g){var b=document.getElementById('pvb-'+x.id+'-'+g);if(b)b.setAttribute('aria-pressed',PV_S[x.id]===g);});});
+  var p=pvSum('p'),tv=pvSum('t');
+  document.getElementById('pvPetvas').textContent=p;
+  document.getElementById('pvTvs').textContent=tv;
+  document.getElementById('pvPetvasBar').style.width=(p/27*100)+'%';
+  document.getElementById('pvTvsBar').style.width=(tv/42*100)+'%';
+  var pn;
+  if(p>=20) pn=pvPill('act','≥ 20')+' '+tr.n20;
+  else if(p>=10) pn=pvPill('pos','≥ 10')+' '+tr.n10;
+  else pn=pvPill('neg','< 10')+' '+tr.n0;
+  document.getElementById('pvPetvasNote').innerHTML=pn;
+  document.getElementById('pvTvsNote').textContent=tr.nT;
+  var c=[0,0,0,0];PV_T.forEach(function(x){c[PV_S[x.id]]++;});
+  document.getElementById('pvCounts').innerHTML=c.map(function(n,g){return '<div style="background:var(--pv-g'+g+');color:var(--pv-g'+g+'-fg)">'+n+'<small>'+tr.gw+' '+g+'</small></div>';}).join('');
+  var act=PV_T.filter(function(x){return PV_S[x.id]===3;}).map(function(x){return (tr.t[x.id]||x.id).toLowerCase();});
+  var pos=PV_T.filter(function(x){return PV_S[x.id]===2;}).map(function(x){return (tr.t[x.id]||x.id).toLowerCase();});
+  document.getElementById('pvPosNote').innerHTML=act.length?pvPill('act',tr.pP)+' '+tr.mP:pos.length?pvPill('pos',tr.pV)+' '+tr.mV:pvPill('neg',tr.pN)+' '+tr.mN;
+  var line=function(g){return PV_T.filter(function(x){return PV_S[x.id]===g;}).map(function(x){return (tr.t[x.id]||x.id).toLowerCase();}).join(', ')||tr.none;};
+  document.getElementById('pvReport').value=tr.rH+'\nPETVAS = '+p+'/27. '+tr.rT+' = '+tv+'/42.\n'+tr.r3+' : '+line(3)+'.\n'+tr.r2+' : '+line(2)+'.\n'+tr.r1+' : '+line(1)+'.';
 }
-document.getElementById("pvResetBtn").addEventListener("click",()=>{PV_T.forEach(x=>PV_S[x.id]=0);document.getElementById("pvExampleBanner").hidden=true;document.getElementById("pvCopyMsg").textContent="";pvRender();});
-document.getElementById("pvCopyBtn").addEventListener("click",()=>{
-  const ta=document.getElementById("pvReport"),m=document.getElementById("pvCopyMsg");
-  navigator.clipboard.writeText(ta.value).then(()=>m.textContent="Texte copié.").catch(()=>{ta.focus();ta.select();m.textContent="Texte sélectionné : copiez-le avec Ctrl+C ou ⌘C.";});
+
+document.getElementById('pvResetBtn').addEventListener('click',function(){PV_T.forEach(function(x){PV_S[x.id]=0;});document.getElementById('pvExampleBanner').hidden=true;document.getElementById('pvCopyMsg').textContent='';pvRender();});
+document.getElementById('pvCopyBtn').addEventListener('click',function(){
+  var tr=pvLang();
+  var ta=document.getElementById('pvReport'),m=document.getElementById('pvCopyMsg');
+  navigator.clipboard.writeText(ta.value).then(function(){m.textContent=tr.cp;}).catch(function(){ta.focus();ta.select();m.textContent=tr.cs;});
 });
+
+window.pvRender=pvRender;
+window.pvBuildSheet=pvBuildSheet;
+pvBuildSheet();
 pvRender();
+})();
+</script>
+<script>
+/* PETVAS i18n extension */
+(function(){
+ var src={
+  fr:{
+   "nav-petvas":"PETVAS / TVS",
+   "petvas-title":"PETVAS &amp; TVS — Vascularite des grands vaisseaux",
+   "petvas-desc":"Cotez chaque territoire de 0 à 3 par rapport au foie. Le PETVAS (9 territoires, 0–27) et le TVS à 14 territoires (Meller, 0–42) se calculent en même temps.",
+   "petvas-banner":"Exemple pré-rempli (patient fictif). Cliquez sur « Remettre à zéro » pour coter votre patient.",
+   "petvas-leg-0":"Pas de fixation (&lt; pool sanguin)",
+   "petvas-leg-1":"&lt; foie",
+   "petvas-leg-2":"= foie · vascularite possible",
+   "petvas-leg-3":"&gt; foie · vascularite active",
+   "petvas-lbl-p":"PETVAS<small>9 territoires · Grayson 2018</small>",
+   "petvas-lbl-t":"TVS<small>14 territoires · Meller 2003</small>",
+   "petvas-lbl-c":"Territoires par grade<small>15 territoires uniques</small>",
+   "petvas-btn-copy":"Copier pour le compte rendu",
+   "petvas-btn-reset":"Remettre à zéro",
+   "petvas-lbl-report":"Texte généré",
+   "petvas-ref-h1":"Lecture d’un territoire",
+   "petvas-ref-h2":"Seuils publiés",
+   "petvas-ref-h3":"Conditions de validité",
+   "petvas-ref-ul1":"<li><b>Grade 3</b> : positif pour une vascularite active (EANM/SNMMI 2018).</li><li><b>Grade 2</b> : vascularite possible. La plupart des études considèrent la TEP positive dès le grade 2.</li><li><b>Grades 0–1</b> : négatif.</li><li>Prudence aux iliaques et fémorales : l’athérome donne des faux positifs.</li>",
+   "petvas-ref-ul2":"<li><b>PETVAS ≥ 10</b> : maladie active vs inactive, sensibilité 60 %, spécificité 80 % (Galli 2022).</li><li><b>PETVAS ≥ 20</b> : rechute plus fréquente (Grayson 2018, cohorte mixte ACG + Takayasu). Non confirmé par Galli 2022 ni Billet 2024.</li><li><b>TVS</b> : pas de seuil diagnostique validé. Un TVS élevé au diagnostic est associé à la progression de l’aorte thoracique (Moreel 2023).</li>",
+   "petvas-ref-ul3":"<li>Acquisition à 60 min minimum, idéalement 90–120 min (EULAR 2023).</li><li>Glycémie &lt; 7 mmol/L souhaitée, &lt; 10 mmol/L acceptable.</li><li>Idéalement avant ou dans les 3 jours suivant le début des corticoïdes.</li><li>En rémission, une fixation résiduelle ne prédit pas la rechute : ne pas l’utiliser seule pour guider le traitement.</li>",
+   "petvas-footer":"Sources : Thibault T et al., Front Med 2024;11:1469964 · Grayson PC et al., Arthritis Rheumatol 2018;70:439–49 · Meller J et al., EJNMMI 2003;30:730–6 · Galli E et al., Rheumatology 2022;61:4809–16 · Slart RHJA et al., EJNMMI 2018;45:1250–69 · Dejaco C et al., Ann Rheum Dis 2024;83:741–51. Outil d’aide au calcul, ne remplace pas l’interprétation clinique."
+  },
+  en:{
+   "nav-petvas":"PETVAS / TVS",
+   "petvas-title":"PETVAS &amp; TVS — Large vessel vasculitis",
+   "petvas-desc":"Score each territory from 0 to 3 relative to the liver. PETVAS (9 territories, 0–27) and TVS with 14 territories (Meller, 0–42) are calculated simultaneously.",
+   "petvas-banner":"Pre-filled example (fictional patient). Click “Reset” to score your patient.",
+   "petvas-leg-0":"No uptake (&lt; blood pool)",
+   "petvas-leg-1":"&lt; liver",
+   "petvas-leg-2":"= liver · possible vasculitis",
+   "petvas-leg-3":"&gt; liver · active vasculitis",
+   "petvas-lbl-p":"PETVAS<small>9 territories · Grayson 2018</small>",
+   "petvas-lbl-t":"TVS<small>14 territories · Meller 2003</small>",
+   "petvas-lbl-c":"Territories by grade<small>15 unique territories</small>",
+   "petvas-btn-copy":"Copy for report",
+   "petvas-btn-reset":"Reset",
+   "petvas-lbl-report":"Generated text",
+   "petvas-ref-h1":"Interpreting a territory",
+   "petvas-ref-h2":"Published thresholds",
+   "petvas-ref-h3":"Validity conditions",
+   "petvas-ref-ul1":"<li><b>Grade 3</b>: positive for active vasculitis (EANM/SNMMI 2018).</li><li><b>Grade 2</b>: possible vasculitis. Most studies consider PET positive from grade 2.</li><li><b>Grades 0–1</b>: negative.</li><li>Caution with iliac and femoral arteries: atherosclerosis causes false positives.</li>",
+   "petvas-ref-ul2":"<li><b>PETVAS ≥ 10</b>: active vs inactive disease, sensitivity 60%, specificity 80% (Galli 2022).</li><li><b>PETVAS ≥ 20</b>: more frequent relapse (Grayson 2018, mixed cohort GCA + Takayasu). Not confirmed by Galli 2022 or Billet 2024.</li><li><b>TVS</b>: no validated diagnostic threshold. High TVS at diagnosis is associated with thoracic aorta progression (Moreel 2023).</li>",
+   "petvas-ref-ul3":"<li>Acquisition at minimum 60 min, ideally 90–120 min post-injection (EULAR 2023).</li><li>Blood glucose &lt; 7 mmol/L recommended, &lt; 10 mmol/L acceptable.</li><li>Ideally before or within 3 days of starting corticosteroids.</li><li>In remission, residual uptake does not predict relapse: do not use alone to guide treatment.</li>",
+   "petvas-footer":"Sources: Thibault T et al., Front Med 2024;11:1469964 · Grayson PC et al., Arthritis Rheumatol 2018;70:439–49 · Meller J et al., EJNMMI 2003;30:730–6 · Galli E et al., Rheumatology 2022;61:4809–16 · Slart RHJA et al., EJNMMI 2018;45:1250–69 · Dejaco C et al., Ann Rheum Dis 2024;83:741–51. Calculation aid, does not replace clinical interpretation."
+  },
+  de:{
+   "nav-petvas":"PETVAS / TVS",
+   "petvas-title":"PETVAS &amp; TVS — Vaskulitis großer Gefäße",
+   "petvas-desc":"Bewerten Sie jedes Territorium von 0 bis 3 im Vergleich zur Leber. PETVAS (9 Territorien, 0–27) und TVS mit 14 Territorien (Meller, 0–42) werden gleichzeitig berechnet.",
+   "petvas-banner":"Vorausgefülltes Beispiel (fiktiver Patient). Klicken Sie auf «Zurücksetzen», um Ihren Patienten zu bewerten.",
+   "petvas-leg-0":"Keine Aufnahme (&lt; Blutpool)",
+   "petvas-leg-1":"&lt; Leber",
+   "petvas-leg-2":"= Leber · mögliche Vaskulitis",
+   "petvas-leg-3":"&gt; Leber · aktive Vaskulitis",
+   "petvas-lbl-p":"PETVAS<small>9 Territorien · Grayson 2018</small>",
+   "petvas-lbl-t":"TVS<small>14 Territorien · Meller 2003</small>",
+   "petvas-lbl-c":"Territorien nach Grad<small>15 einzigartige Territorien</small>",
+   "petvas-btn-copy":"In Bericht kopieren",
+   "petvas-btn-reset":"Zurücksetzen",
+   "petvas-lbl-report":"Generierter Text",
+   "petvas-ref-h1":"Auswertung eines Territoriums",
+   "petvas-ref-h2":"Veröffentlichte Schwellenwerte",
+   "petvas-ref-h3":"Gültigkeitsbedingungen",
+   "petvas-ref-ul1":"<li><b>Grad 3</b>: positiv für aktive Vaskulitis (EANM/SNMMI 2018).</li><li><b>Grad 2</b>: mögliche Vaskulitis. Die meisten Studien werten PET ab Grad 2 als positiv.</li><li><b>Grad 0–1</b>: negativ.</li><li>Vorsicht bei Iliaka und Femoralis: Atherosklerose verursacht falsch-positive Befunde.</li>",
+   "petvas-ref-ul2":"<li><b>PETVAS ≥ 10</b>: aktive vs. inaktive Erkrankung, Sensitivität 60 %, Spezifität 80 % (Galli 2022).</li><li><b>PETVAS ≥ 20</b>: häufigerer Rückfall (Grayson 2018, gemischte Kohorte RZA + Takayasu). Nicht bestätigt durch Galli 2022 oder Billet 2024.</li><li><b>TVS</b>: kein validierter diagnostischer Schwellenwert. Ein hoher TVS bei Diagnose ist mit Progression der thorakalen Aorta assoziiert (Moreel 2023).</li>",
+   "petvas-ref-ul3":"<li>Aufnahme mindestens 60 min, idealerweise 90–120 min nach Injektion (EULAR 2023).</li><li>Blutzucker &lt; 7 mmol/L erwünscht, &lt; 10 mmol/L akzeptabel.</li><li>Idealerweise vor oder innerhalb von 3 Tagen nach Beginn der Kortikosteroide.</li><li>In Remission sagt eine restliche Aufnahme keinen Rückfall voraus: nicht allein zur Therapiesteuerung verwenden.</li>",
+   "petvas-footer":"Quellen: Thibault T et al., Front Med 2024;11:1469964 · Grayson PC et al., Arthritis Rheumatol 2018;70:439–49 · Meller J et al., EJNMMI 2003;30:730–6 · Galli E et al., Rheumatology 2022;61:4809–16 · Slart RHJA et al., EJNMMI 2018;45:1250–69 · Dejaco C et al., Ann Rheum Dis 2024;83:741–51. Berechnungshilfe, ersetzt nicht die klinische Interpretation."
+  },
+  it:{
+   "nav-petvas":"PETVAS / TVS",
+   "petvas-title":"PETVAS &amp; TVS — Vasculite dei grandi vasi",
+   "petvas-desc":"Classificare ogni territorio da 0 a 3 rispetto al fegato. Il PETVAS (9 territori, 0–27) e il TVS con 14 territori (Meller, 0–42) vengono calcolati simultaneamente.",
+   "petvas-banner":"Esempio precompilato (paziente fittizio). Fare clic su «Azzera» per classificare il proprio paziente.",
+   "petvas-leg-0":"Nessuna captazione (&lt; pool sanguigno)",
+   "petvas-leg-1":"&lt; fegato",
+   "petvas-leg-2":"= fegato · vasculite possibile",
+   "petvas-leg-3":"&gt; fegato · vasculite attiva",
+   "petvas-lbl-p":"PETVAS<small>9 territori · Grayson 2018</small>",
+   "petvas-lbl-t":"TVS<small>14 territori · Meller 2003</small>",
+   "petvas-lbl-c":"Territori per grado<small>15 territori unici</small>",
+   "petvas-btn-copy":"Copia per la relazione",
+   "petvas-btn-reset":"Azzera",
+   "petvas-lbl-report":"Testo generato",
+   "petvas-ref-h1":"Lettura di un territorio",
+   "petvas-ref-h2":"Soglie pubblicate",
+   "petvas-ref-h3":"Condizioni di validità",
+   "petvas-ref-ul1":"<li><b>Grado 3</b>: positivo per vasculite attiva (EANM/SNMMI 2018).</li><li><b>Grado 2</b>: vasculite possibile. La maggior parte degli studi considera il PET positivo dal grado 2.</li><li><b>Gradi 0–1</b>: negativo.</li><li>Attenzione alle iliache e femorali: l’aterosclerosi dà falsi positivi.</li>",
+   "petvas-ref-ul2":"<li><b>PETVAS ≥ 10</b>: malattia attiva vs inattiva, sensibilità 60%, specificità 80% (Galli 2022).</li><li><b>PETVAS ≥ 20</b>: recidiva più frequente (Grayson 2018, coorte mista ACG + Takayasu). Non confermato da Galli 2022 né Billet 2024.</li><li><b>TVS</b>: nessuna soglia diagnostica validata. Un TVS elevato alla diagnosi è associato alla progressione dell’aorta toracica (Moreel 2023).</li>",
+   "petvas-ref-ul3":"<li>Acquisizione a minimo 60 min, idealmente 90–120 min dopo iniezione (EULAR 2023).</li><li>Glicemia &lt; 7 mmol/L raccomandata, &lt; 10 mmol/L accettabile.</li><li>Idealmente prima o entro 3 giorni dall’inizio dei corticosteroidi.</li><li>In remissione, una captazione residua non predice la recidiva: non usarla da sola per guidare il trattamento.</li>",
+   "petvas-footer":"Fonti: Thibault T et al., Front Med 2024;11:1469964 · Grayson PC et al., Arthritis Rheumatol 2018;70:439–49 · Meller J et al., EJNMMI 2003;30:730–6 · Galli E et al., Rheumatology 2022;61:4809–16 · Slart RHJA et al., EJNMMI 2018;45:1250–69 · Dejaco C et al., Ann Rheum Dis 2024;83:741–51. Strumento di calcolo, non sostituisce l’interpretazione clinica."
+  }
+ };
+ Object.keys(src).forEach(function(lang){Object.assign(I18N_GLOBAL[lang],src[lang]);});
+ var _orig=window.setGlobalLang;
+ window.setGlobalLang=function(code){
+   _orig(code);
+   if(window.pvBuildSheet)window.pvBuildSheet();
+   if(window.pvRender)window.pvRender();
+ };
 })();
 </script>
 
