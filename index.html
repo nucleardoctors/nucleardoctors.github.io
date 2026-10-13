@@ -26,6 +26,7 @@
 <meta name="theme-color" content="#1a5276">
 <link rel="manifest" href="manifest.json">
 <link rel="apple-touch-icon" href="icon-180.png">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@500;700&display=swap">
 <title>TOOL GAËL - Médecine Nucléaire</title>
 <style>
 :root {
@@ -649,7 +650,6 @@ nav button.active {
     </div>
   </div>
   <div style="text-align:right">
-    <div class="version">Développé par Gaël Amzalag</div>
     <div class="version">© Swiss Nuclear Doctors</div>
   </div>
   <select id="lang-sel" class="lang-sel no-print" onchange="setGlobalLang(this.value)">
@@ -671,6 +671,7 @@ nav button.active {
   <button onclick="showModule('shunt_simple')" data-i18n="nav-shunt_simple">Shunt Cérébral</button>
   <button onclick="showModule('shunt_sirt')" data-i18n="nav-shunt_sirt">Shunt Pulmonaire</button>
   <button onclick="showModule('psma')" data-i18n="nav-psma">PSMA PET/CT</button>
+  <button onclick="showModule('petvas')">PETVAS / TVS</button>
 </nav>
 
 <!-- ==================== DMSA ==================== -->
@@ -1224,6 +1225,192 @@ nav button.active {
   </div>
 </div>
 
+<!-- ==================== GFR ==================== -->
+<div id="mod-gfr" class="module">
+  <h2>Clairance GFR — DTPA / EDTA</h2>
+  <p class="description">Méthode monoexponentielle (prélèvement tardif unique) — BNMS 2018 (Burniston et al.)</p>
+
+  <div class="card">
+    <h3>1 — Informations patient</h3>
+    <div class="form-grid">
+      <div class="form-group"><label>ID Patient (NIP)</label><input type="text" id="gfr-ipp"></div>
+      <div class="form-group"><label>Date de l'examen</label><input type="date" id="gfr-date"></div>
+      <div class="form-group"><label>Date de naissance</label><input type="date" id="gfr-ddn"></div>
+      <div class="form-group"><label>Sexe</label>
+        <select id="gfr-sexe" onchange="calcGFR()">
+          <option value="">— Choisir —</option>
+          <option value="M">Masculin</option>
+          <option value="F">Féminin</option>
+        </select>
+      </div>
+      <div class="form-group"><label>Taille <span class="unit">(cm)</span></label><input type="number" id="gfr-taille" min="50" max="250" oninput="calcGFR()"></div>
+      <div class="form-group"><label>Poids actuel <span class="unit">(kg)</span></label><input type="number" id="gfr-poids" step="0.1" oninput="calcGFR()"></div>
+      <div class="form-group"><label>Surface corporelle — BSA Haycock <span class="unit">(m²)</span></label><input type="number" id="gfr-bsa" readonly></div>
+    </div>
+    <div style="margin-top:0.8rem;">
+      <div class="info-box" id="gfr-sampling-tip">ℹ Entrez le poids et la taille pour afficher l'heure de prélèvement recommandée.</div>
+    </div>
+  </div>
+
+  <div class="card">
+    <h3>2 — Radiopharmaceutique & Kit</h3>
+    <div class="form-grid">
+      <div class="form-group"><label>Radiopharmaceutique</label>
+        <select id="gfr-rp" onchange="calcGFR()">
+          <option value="dtpa">⁹⁹ᵐTc-DTPA</option>
+          <option value="edta">⁵¹Cr-EDTA</option>
+        </select>
+      </div>
+      <div class="form-group"><label>N° de lot du kit</label><input type="text" id="gfr-lot"></div>
+      <div class="form-group"><label>Date de péremption du kit</label><input type="date" id="gfr-peremption"></div>
+      <div class="form-group"><label>Activité nominale du kit <span class="unit">(MBq)</span></label><input type="number" id="gfr-activite-nominale" step="0.1" oninput="calcGFR()"></div>
+    </div>
+  </div>
+
+  <div class="card">
+    <h3>3 — Préparation de l'étalon (standard)</h3>
+    <div class="section-label no-print">Méthode de dilution</div>
+    <div class="method-toggle no-print">
+      <button class="method-btn active" id="btn-vol" onclick="setMethod('vol')">Volumétrique</button>
+      <button class="method-btn" id="btn-pes" onclick="setMethod('pes')">Par pesée</button>
+    </div>
+    <div id="sec-vol">
+      <div class="info-box">Préparer l'étalon par <strong>dilution volumétrique</strong> : prélever un volume précis de la dose (V<sub>dose</sub>) et compléter à un volume total V<sub>total</sub> connu avec du sérum physiologique.<br><em>Exemple typique : 1 mL dose → 500 mL total (dilution 1/500).</em></div>
+      <div class="form-grid">
+        <div class="form-group"><label>Volume prélevé pour l'étalon — V<sub>dose</sub> <span class="unit">(mL)</span></label><input type="number" id="gfr-vol-dose" step="0.001" min="0" oninput="calcGFR()"></div>
+        <div class="form-group"><label>Volume total du standard — V<sub>total</sub> <span class="unit">(mL)</span></label><input type="number" id="gfr-vol-total" step="0.1" min="0" oninput="calcGFR()"></div>
+        <div class="form-group"><label>Facteur de dilution <span class="unit">(calculé)</span></label><input type="number" id="gfr-dilution-vol" readonly></div>
+      </div>
+    </div>
+    <div id="sec-pes" class="hidden">
+      <div class="info-box">Préparer l'étalon par <strong>pesée</strong> : tarer la seringue, noter le poids avant (P<sub>avant</sub>) et après injection (P<sub>après</sub>), puis le poids du flacon standard rempli (P<sub>flacon+</sub>) et vide (P<sub>flacon−</sub>).<br><em>Facteur de dilution = (P<sub>flacon+</sub> − P<sub>flacon−</sub>) / (P<sub>avant</sub> − P<sub>après</sub>).</em></div>
+      <div class="form-grid">
+        <div class="form-group"><label>Poids seringue avant — P<sub>avant</sub> <span class="unit">(g)</span></label><input type="number" id="gfr-pes-avant" step="0.01" oninput="calcGFR()"></div>
+        <div class="form-group"><label>Poids seringue après — P<sub>après</sub> <span class="unit">(g)</span></label><input type="number" id="gfr-pes-apres" step="0.01" oninput="calcGFR()"></div>
+        <div class="form-group"><label>Poids flacon standard plein — P<sub>flacon+</sub> <span class="unit">(g)</span></label><input type="number" id="gfr-pes-flacon-plein" step="0.01" oninput="calcGFR()"></div>
+        <div class="form-group"><label>Poids flacon standard vide — P<sub>flacon−</sub> <span class="unit">(g)</span></label><input type="number" id="gfr-pes-flacon-vide" step="0.01" oninput="calcGFR()"></div>
+        <div class="form-group"><label>Facteur de dilution <span class="unit">(calculé)</span></label><input type="number" id="gfr-dilution-pes" readonly></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <h3>4 — Injection</h3>
+    <div class="form-grid">
+      <div class="form-group"><label>Heure d'injection <span class="unit">(HH:MM)</span></label><input type="time" id="gfr-t-inj" oninput="calcGFR()"></div>
+      <div class="form-group"><label>Activité injectée <span class="unit">(MBq)</span></label><input type="number" id="gfr-activite-inj" step="0.1" oninput="calcGFR()"></div>
+    </div>
+    <div class="info-box" style="margin-top:0.6rem; font-size:0.8rem;">ℹ Flush de 10 mL de NaCl 0,9% après injection. Vérifier l'absence d'extravasation avant de valider l'examen.</div>
+  </div>
+
+  <div class="card">
+    <h3>5 — Prélèvement plasmatique</h3>
+    <div class="info-box" id="gfr-prelevements-info">ℹ Méthode à <strong>prélèvement unique tardif</strong> (monoexponentielle, Fleming eq.5).<br>Heure cible : <strong id="gfr-heure-cible">— entrez le poids/taille —</strong><br><span style="font-size:0.78rem; color:#1a5276;">La fenêtre acceptable est ±10 min autour de l'heure calculée.</span></div>
+    <div class="form-grid">
+      <div class="form-group"><label>Heure de prélèvement <span class="unit">(HH:MM)</span></label><input type="time" id="gfr-t-prel" oninput="calcGFR()"></div>
+      <div class="form-group"><label>Délai injection→prélèvement <span class="unit">(min, calculé)</span></label><input type="number" id="gfr-delai" readonly></div>
+    </div>
+  </div>
+
+  <div class="card">
+    <h3>6 — Comptage (puits γ ou scintillateur)</h3>
+    <div class="section-label">Bruit de fond</div>
+    <div class="form-grid">
+      <div class="form-group"><label>Bruit de fond — B <span class="unit">(cpm ou cps)</span></label><input type="number" id="gfr-bg" step="0.1" oninput="calcGFR()"></div>
+    </div>
+    <hr class="separator">
+    <div class="section-label">Standard (étalon — en double)</div>
+    <div class="info-box" style="font-size:0.79rem;">Compter l'étalon en double. Si les deux valeurs diffèrent de plus de 1% → recompter.</div>
+    <div class="form-grid">
+      <div class="form-group"><label>Standard 1 <span class="unit">(brut, cpm ou cps)</span></label><input type="number" id="gfr-std1" step="0.1" oninput="calcGFR()"></div>
+      <div class="form-group"><label>Standard 2 <span class="unit">(brut, cpm ou cps)</span></label><input type="number" id="gfr-std2" step="0.1" oninput="calcGFR()"></div>
+      <div class="form-group"><label>Moyenne standard nette <span class="unit">(calculée)</span></label><input type="number" id="gfr-std-mean" readonly></div>
+      <div class="form-group"><label>Écart duplicats standard <span class="unit">(%, calculé)</span></label><input type="number" id="gfr-std-cv" readonly></div>
+    </div>
+    <hr class="separator">
+    <div class="section-label">Plasma patient (en double)</div>
+    <div class="form-grid">
+      <div class="form-group"><label>Plasma 1 <span class="unit">(brut, cpm ou cps)</span></label><input type="number" id="gfr-plas1" step="0.1" oninput="calcGFR()"></div>
+      <div class="form-group"><label>Plasma 2 <span class="unit">(brut, cpm ou cps)</span></label><input type="number" id="gfr-plas2" step="0.1" oninput="calcGFR()"></div>
+      <div class="form-group"><label>Moyenne plasma nette <span class="unit">(calculée)</span></label><input type="number" id="gfr-plas-mean" readonly></div>
+      <div class="form-group"><label>Écart duplicats plasma <span class="unit">(%, calculé)</span></label><input type="number" id="gfr-plas-cv" readonly></div>
+    </div>
+  </div>
+
+  <div class="card">
+    <h3>7 — Contrôle qualité (BNMS 2018 — Table 2)</h3>
+    <div id="gfr-qc-list">
+      <div class="qc-item" id="qc-duplicat-std"><span class="qc-label">Écart duplicats standard</span><span class="qc-val" id="qc-std-val">—</span><span class="qc-limit">Limite : &lt; 1%</span></div>
+      <div class="qc-item" id="qc-duplicat-plas"><span class="qc-label">Écart duplicats plasma</span><span class="qc-val" id="qc-plas-val">—</span><span class="qc-limit">Limite : &lt; 3%</span></div>
+      <div class="qc-item" id="qc-delai"><span class="qc-label">Délai injection→prélèvement</span><span class="qc-val" id="qc-delai-val">—</span><span class="qc-limit" id="qc-delai-limit">Cible ± 10 min</span></div>
+      <div class="qc-item" id="qc-plasma-net"><span class="qc-label">Comptage plasma net &gt; bruit de fond</span><span class="qc-val" id="qc-plasma-net-val">—</span><span class="qc-limit">Plasma net &gt; 0</span></div>
+      <div class="qc-item" id="qc-ratio-plasma"><span class="qc-label">Ratio plasma/standard (Cp/Cs)</span><span class="qc-val" id="qc-ratio-val">—</span><span class="qc-limit">Plausibilité : 0,001 – 0,3</span></div>
+    </div>
+    <div class="formula-box no-print" style="margin-top:0.8rem; font-size:0.78rem;">
+      <div style="font-weight:600; color:var(--primary); margin-bottom:0.3rem;">Référence guideline</div>
+      <div style="color:var(--text-light); line-height:1.5;">Burniston MT, Fleming JS, Barratt LJ, et al. <em>Recommendations for the measurement of GFR by plasma sampling. Nuclear Medicine Communications</em> 2018;39(11):1026–1031.<br>Fleming JS. <em>A simplified method for the measurement of GFR using a single injection of 99mTc-DTPA.</em> Nucl Med Commun 2007;28:956–961.</div>
+    </div>
+  </div>
+
+  <div class="card">
+    <h3>8 — Résultats</h3>
+    <div class="results-grid">
+      <div class="result-item full" id="gfr-res-gfr-abs">
+        <div class="label">GFR absolu (non corrigé à la BSA)</div>
+        <div class="value" id="gfr-val-gfr-abs">—</div>
+        <div class="norm">mL/min</div>
+      </div>
+      <div class="result-item full" id="gfr-res-gfr-corr">
+        <div class="label">GFR corrigé à 1,73 m² (indexé BSA)</div>
+        <div class="value" id="gfr-val-gfr-corr">—</div>
+        <div class="norm" id="gfr-norm-corr">mL/min/1,73m² — Norme selon l'âge et le sexe</div>
+      </div>
+      <div class="result-item" id="gfr-res-gref" style="display:none">
+        <div class="label">GFR (correction Gref-Karp — si &lt; 25 mL/min)</div>
+        <div class="value" id="gfr-val-gref">—</div>
+        <div class="norm">mL/min (Gref &amp; Karp eq.7-8)</div>
+      </div>
+      <div class="result-item">
+        <div class="label">Délai injection→prélèvement utilisé</div>
+        <div class="value" id="gfr-val-delai">—</div>
+        <div class="norm">minutes</div>
+      </div>
+    </div>
+    <div class="formula-box no-print" style="margin-top:0.8rem;">
+      <div class="formula-title">Valeurs de référence GFR indexé — BNMS 2018 (mL/min/1,73 m²)</div>
+      <div style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:0 0.5rem; margin:0.5rem 0;">
+        <div style="font-weight:700; font-size:0.8rem; color:var(--primary); padding:0.2rem 0.4rem; border-bottom:1px solid var(--border);">Âge</div>
+        <div style="font-weight:700; font-size:0.8rem; color:var(--primary); padding:0.2rem 0.4rem; border-bottom:1px solid var(--border); text-align:center;">♂ Homme</div>
+        <div style="font-weight:700; font-size:0.8rem; color:var(--primary); padding:0.2rem 0.4rem; border-bottom:1px solid var(--border); text-align:center;">♀ Femme</div>
+        <div style="font-size:0.8rem; padding:0.18rem 0.4rem;">20–29 ans</div><div style="font-size:0.8rem; padding:0.18rem 0.4rem; text-align:center;">116 ± 10</div><div style="font-size:0.8rem; padding:0.18rem 0.4rem; text-align:center;">109 ± 13</div>
+        <div style="font-size:0.8rem; padding:0.18rem 0.4rem; background:#f8f9fb;">30–39 ans</div><div style="font-size:0.8rem; padding:0.18rem 0.4rem; text-align:center; background:#f8f9fb;">107 ± 14</div><div style="font-size:0.8rem; padding:0.18rem 0.4rem; text-align:center; background:#f8f9fb;">100 ± 13</div>
+        <div style="font-size:0.8rem; padding:0.18rem 0.4rem;">40–49 ans</div><div style="font-size:0.8rem; padding:0.18rem 0.4rem; text-align:center;">99 ± 11</div><div style="font-size:0.8rem; padding:0.18rem 0.4rem; text-align:center;">92 ± 14</div>
+        <div style="font-size:0.8rem; padding:0.18rem 0.4rem; background:#f8f9fb;">50–59 ans</div><div style="font-size:0.8rem; padding:0.18rem 0.4rem; text-align:center; background:#f8f9fb;">93 ± 13</div><div style="font-size:0.8rem; padding:0.18rem 0.4rem; text-align:center; background:#f8f9fb;">85 ± 13</div>
+        <div style="font-size:0.8rem; padding:0.18rem 0.4rem;">60–69 ans</div><div style="font-size:0.8rem; padding:0.18rem 0.4rem; text-align:center;">85 ± 13</div><div style="font-size:0.8rem; padding:0.18rem 0.4rem; text-align:center;">78 ± 13</div>
+        <div style="font-size:0.8rem; padding:0.18rem 0.4rem; background:#f8f9fb;">≥ 70 ans</div><div style="font-size:0.8rem; padding:0.18rem 0.4rem; text-align:center; background:#f8f9fb;">75 ± 12</div><div style="font-size:0.8rem; padding:0.18rem 0.4rem; text-align:center; background:#f8f9fb;">68 ± 12</div>
+      </div>
+      <div class="formula-legend">CKD-EPI staging : &gt;90 = G1 &nbsp;|&nbsp; 60–89 = G2 &nbsp;|&nbsp; 45–59 = G3a &nbsp;|&nbsp; 30–44 = G3b &nbsp;|&nbsp; 15–29 = G4 &nbsp;|&nbsp; &lt;15 = G5</div>
+    </div>
+    <div class="formula-box no-print" style="margin-top:0.6rem;">
+      <div class="formula-title">Formule de Fleming (eq. 5) — Monoexponentielle</div>
+      <div class="formula-main">GFR = −(V<sub>d</sub> / T) × ln(C<sub>p</sub> / (C<sub>s</sub> × F × V<sub>d</sub>))</div>
+      <div class="formula-legend">
+        <span>V<sub>d</sub></span> = volume de distribution (≈ 176,3 × poids, mL) &nbsp;|&nbsp;
+        <span>T</span> = délai injection→prélèvement (min) &nbsp;|&nbsp;
+        <span>C<sub>p</sub></span> = comptage plasma net &nbsp;|&nbsp;
+        <span>C<sub>s</sub></span> = comptage standard net &nbsp;|&nbsp;
+        <span>F</span> = facteur de dilution<br>
+        <em>Fleming JS. Nucl Med Commun 2007;28:956–961</em>
+      </div>
+    </div>
+    <div class="btn-row">
+      <button class="btn btn-primary" onclick="calcGFR()">Calculer</button>
+      <button class="btn btn-secondary" onclick="resetModule('gfr')">Réinitialiser</button>
+      <button class="btn btn-secondary" onclick="window.print()">Imprimer</button>
+    </div>
+  </div>
+</div>
+
 <!-- ==================== SHUNT CÉRÉBRAL ==================== -->
 <div id="mod-shunt_simple" class="module">
   <h2 data-i18n="shunts-title">Shunt Cérébral</h2>
@@ -1710,6 +1897,566 @@ nav button.active {
 </script>
 <script>
 if('serviceWorker' in navigator){navigator.serviceWorker.register('sw.js');}
+</script>
+
+<!-- ==================== PSMA PET/CT ==================== -->
+<style>
+.nomo-grid{display:grid;grid-template-columns:200px 1fr 80px;gap:0.7rem 1rem;align-items:start}
+.nomo-label{font-size:.83rem;font-weight:600;color:var(--text);padding-top:.2rem;line-height:1.3}
+.nomo-label .sublabel{font-weight:400;font-size:.74rem;color:var(--text-light);display:block;margin-top:.1rem}
+.nomo-pts-col{text-align:right;padding-top:.25rem}
+.nomo-pts-val{font-size:.9rem;font-weight:700;color:var(--primary)}
+.nomo-pts-unit{font-size:.65rem;color:var(--text-light);display:block}
+.nomo-divider{grid-column:1/-1;border-top:1px dashed var(--border);margin:.2rem 0}
+.nomo-bar-bg{height:7px;background:#e4eaf0;border-radius:4px;position:relative;overflow:hidden}
+.nomo-bar-fill{height:100%;background:linear-gradient(90deg,#2980b9,#1a5276);border-radius:4px;transition:width .35s cubic-bezier(.4,0,.2,1);width:0}
+.cat-btns{display:flex;flex-wrap:wrap;gap:.3rem;margin-top:.35rem}
+.cat-btn{padding:.25rem .55rem;border:1.5px solid var(--border);background:white;border-radius:5px;cursor:pointer;font-size:.76rem;color:var(--text-light);transition:.18s;white-space:nowrap;line-height:1.3}
+.cat-btn:hover{border-color:var(--primary-light);color:var(--primary)}
+.cat-btn.active{border-color:var(--primary);background:var(--primary);color:white;font-weight:600}
+.cat-btn.active-warn{border-color:var(--warning);background:var(--warning);color:white;font-weight:600}
+.slider-row{display:flex;align-items:center;gap:.6rem;margin-top:.3rem}
+.slider-row input[type=range]{flex:1;accent-color:var(--primary);height:4px;cursor:pointer}
+.slider-val{font-size:.82rem;font-weight:700;color:var(--primary);min-width:5rem;text-align:right}
+.slider-val .sv-unit{font-weight:400;color:var(--text-light);font-size:.72rem}
+.total-bar-section{margin-top:1.2rem;padding-top:1rem;border-top:2px solid var(--border)}
+.total-bar-label{font-size:.82rem;font-weight:700;color:var(--text);margin-bottom:.3rem;display:flex;justify-content:space-between;align-items:baseline}
+.result-card{background:var(--card);border-radius:10px;padding:1.6rem 1.8rem;margin-bottom:1rem;box-shadow:0 2px 12px rgba(0,0,0,.09);border:1px solid var(--border)}
+.prob-display{text-align:center;margin-bottom:1.2rem}
+.prob-value{font-size:4rem;font-weight:800;line-height:1;transition:color .35s;font-variant-numeric:tabular-nums}
+.prob-value.low{color:var(--text-light)}
+.prob-value.medium{color:var(--warning)}
+.prob-value.high{color:var(--danger)}
+.prob-label{font-size:.82rem;color:var(--text-light);margin-top:.2rem}
+.gauge-wrap{position:relative;margin:.8rem 0}
+.gauge-track{height:20px;border-radius:10px;position:relative;background:linear-gradient(90deg,#27ae60 0%,#2ecc71 20%,#f39c12 35%,#e67e22 45%,#e74c3c 60%,#c0392b 100%)}
+.gauge-cutoff{position:absolute;top:-4px;bottom:-4px;left:40%;width:3px;background:white;border-radius:2px;box-shadow:0 0 0 1.5px rgba(0,0,0,.25)}
+.gauge-cutoff-label{position:absolute;top:calc(100% + 4px);left:50%;transform:translateX(-50%);font-size:.62rem;color:var(--danger);font-weight:700;white-space:nowrap}
+.gauge-needle{position:absolute;top:-5px;bottom:-5px;width:4px;background:white;border-radius:2px;box-shadow:0 2px 6px rgba(0,0,0,.3);transition:left .35s cubic-bezier(.4,0,.2,1);left:0}
+.gauge-labels{display:flex;justify-content:space-between;font-size:.65rem;color:var(--text-light);margin-top:.9rem}
+.interp-box{border-radius:8px;padding:1rem 1.2rem;margin-top:1rem;display:flex;align-items:flex-start;gap:.8rem;border-left:5px solid}
+.interp-box.no-sel{background:#f8f9fb;border-color:var(--border)}
+.interp-box.low-prob{background:#eafaf1;border-color:var(--normal)}
+.interp-box.mid-prob{background:#fef9e7;border-color:var(--warning)}
+.interp-box.high-prob{background:#fdf4f4;border-color:var(--danger)}
+.interp-icon{font-size:1.4rem;flex-shrink:0}
+.interp-text{font-size:.88rem;line-height:1.55}
+.interp-text strong{font-size:.95rem;display:block;margin-bottom:.2rem}
+.interp-text .stats{font-size:.76rem;color:var(--text-light);margin-top:.3rem}
+.perf-table{width:100%;border-collapse:collapse;font-size:.78rem;margin-top:.8rem}
+.perf-table th{background:var(--primary);color:white;padding:.3rem .5rem;font-weight:600;text-align:center}
+.perf-table td{padding:.25rem .5rem;border:1px solid var(--border);text-align:center}
+.perf-table tr.active-row{background:#eaf2fb;font-weight:700}
+.perf-table tr.active-row td{color:var(--primary)}
+.warn-box{background:#fef9e7;border:1px solid #f9ca24;border-radius:6px;padding:.6rem .9rem;font-size:.8rem;color:#7d6608;margin-top:.6rem;line-height:1.5}
+.accuracy-badge{display:inline-flex;align-items:center;gap:.4rem;background:#eaf2fb;border:1px solid #a9cce3;border-radius:20px;padding:.25rem .8rem;font-size:.78rem;color:var(--primary);font-weight:600;margin-bottom:1rem}
+@media(max-width:700px){
+  .nomo-grid{grid-template-columns:1fr;gap:.3rem}
+  .nomo-label{padding:.5rem 0 .1rem}
+  .nomo-pts-col{text-align:left;padding:0;margin-bottom:.3rem}
+  .nomo-divider{margin:.1rem 0}
+  .prob-value{font-size:2.5rem}
+  .gauge-labels{font-size:.55rem}
+  .result-card{padding:.8rem}
+}
+@media print{
+  .cat-btns,.slider-row{display:none!important}
+  .result-card{padding:.6rem .8rem;box-shadow:none;margin-bottom:.5rem}
+  .prob-value{font-size:2rem}
+  .gauge-track{print-color-adjust:exact}
+}
+</style>
+
+<div id="mod-psma" class="module">
+  <h2>Prédiction de positivité du PSMA PET/CT</h2>
+  <p class="description">Probabilité individuelle d'obtenir un 68Ga-PSMA-11 PET/CT positif en situation de récidive biochimique après traitement radical du cancer de la prostate. Renseignez les 6 paramètres cliniques.</p>
+
+  <div class="accuracy-badge">Précision du modèle : AUC = 82% — n = 703 patients — Bootstrap interne × 200</div>
+
+  <div class="info-box">
+    <strong>Référence :</strong> Ceci F et al. Prediction nomogram for 68Ga-PSMA-11 PET/CT in different clinical settings of PSA failure after radical treatment for prostate cancer. <em>Eur J Nucl Med Mol Imaging</em> 2020;47:136-146.<br>
+    Seuil optimal ≥ 40% : Se = 84.7%, Sp = 66.2%, VPN = 80.5% — <strong>validation externe requise avant tout usage clinique</strong>.
+  </div>
+
+  <div class="card">
+    <h3>Nomogramme interactif</h3>
+    <div class="nomo-grid" id="nomo-grid"></div>
+    <div class="total-bar-section">
+      <div class="total-bar-label">
+        <span>Score total</span>
+        <span class="nomo-pts-val" id="total-lp-display">—</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="result-card" id="result-card">
+    <h3 style="font-size:1rem;color:var(--primary);margin-bottom:1rem;padding-bottom:.5rem;border-bottom:1px solid var(--border)">Résultat — Probabilité de PSMA PET/CT positif</h3>
+    <div class="prob-display">
+      <div class="prob-value low" id="prob-value">—</div>
+      <div class="prob-label">probabilité de 68Ga-PSMA-11 PET/CT positif</div>
+    </div>
+    <div class="gauge-wrap">
+      <div class="gauge-track">
+        <div class="gauge-cutoff"><span class="gauge-cutoff-label">Seuil 40%</span></div>
+        <div class="gauge-needle" id="gauge-needle" style="left:0%"></div>
+      </div>
+      <div class="gauge-labels">
+        <span>0%</span>
+        <span style="color:var(--normal)">Faible probabilité</span>
+        <span style="color:var(--danger);font-weight:700">&gt;= 40% : PET PSMA recommandé</span>
+        <span>100%</span>
+      </div>
+    </div>
+    <div class="interp-box no-sel" id="interp-box">
+      <div class="interp-icon">i</div>
+      <div class="interp-text"><strong>En attente de saisie</strong>Renseignez les 6 paramètres cliniques pour obtenir la probabilité prédite.</div>
+    </div>
+    <div class="warn-box" id="warn-minor" style="display:none">Note : l'ADT en cours et le délai avant récidive biochimique ne sont pas des prédicteurs indépendants significatifs dans le modèle multivarié (p=0.9). Leur contribution au score est marginale.</div>
+    <div class="btn-row no-print" id="result-btns" style="display:none">
+      <button class="btn btn-primary" onclick="window.print()">Imprimer</button>
+      <button class="btn btn-secondary" onclick="psmaResetAll()">Réinitialiser</button>
+    </div>
+  </div>
+
+  <div class="card no-print">
+    <h3>Performance du nomogramme selon le seuil de probabilité</h3>
+    <p style="font-size:.78rem;color:var(--text-light);margin-bottom:.8rem">Ceci et al. 2020, Table 3 — n=703 patients (360 PET positifs, 343 négatifs)</p>
+    <table class="perf-table" id="perf-table">
+      <thead><tr>
+        <th>Seuil (%)</th><th>Sensibilité (%)</th><th>Spécificité (%)</th><th>VPP (%)</th><th>VPN (%)</th><th>Précision (%)</th>
+      </tr></thead>
+      <tbody>
+        <tr><td>&gt;= 10</td><td>99.7</td><td>16</td><td>55.5</td><td>98.2</td><td>57.9</td></tr>
+        <tr><td>&gt;= 20</td><td>97.8</td><td>32.9</td><td>60.5</td><td>93.3</td><td>65.5</td></tr>
+        <tr><td>&gt;= 25</td><td>95.6</td><td>49</td><td>66.3</td><td>91.3</td><td>72.3</td></tr>
+        <tr><td>&gt;= 30</td><td>92.2</td><td>54.8</td><td>68.2</td><td>87</td><td>73.5</td></tr>
+        <tr id="perf-row-40" class="active-row"><td>&gt;= 40 *</td><td>84.7</td><td>66.2</td><td>72.4</td><td>80.5</td><td>76</td></tr>
+        <tr><td>&gt;= 50</td><td>73.1</td><td>74.9</td><td>75.4</td><td>72.6</td><td>74</td></tr>
+        <tr><td>&gt;= 60</td><td>60.8</td><td>81</td><td>77.1</td><td>66.3</td><td>71</td></tr>
+        <tr><td>&gt;= 70</td><td>51.1</td><td>87.2</td><td>80.7</td><td>62.9</td><td>69.1</td></tr>
+        <tr><td>&gt;= 80</td><td>34.7</td><td>92.1</td><td>82.2</td><td>57.3</td><td>63.4</td></tr>
+      </tbody>
+    </table>
+    <div style="font-size:.72rem;color:var(--text-light);margin-top:.5rem">* Seuil optimal selon analyse ROC (AUC=0,76)</div>
+  </div>
+</div>
+
+<script>
+(function(){
+'use strict';
+var _psmaLang = 'fr';
+var PSMA_INTERCEPT = -3.45;
+var PSMA_VARS = [
+  {id:'isup',type:'cat',betas:[0,0.171934,0.338812,0.505689,0.672567],
+   labels:{fr:['ISUP 1','ISUP 2','ISUP 3','ISUP 4','ISUP 5']}},
+  {id:'psa',type:'psa_step',
+   psaSteps:[{max:0.2,inclusive:true,beta:0},{max:0.5,inclusive:false,beta:0.467763},
+             {max:1,inclusive:false,beta:0.932997},{max:2,inclusive:false,beta:1.393174},
+             {max:null,inclusive:true,beta:1.860937}],
+   sliderMin:0,sliderMax:10,sliderStep:0.01,sliderUnit:'ng/ml'},
+  {id:'psadt',type:'slider',betas:[0,1.195955,2.396967,3.592922],
+   sliderMin:0.5,sliderMax:24,sliderStep:0.5,sliderUnit:'mois',
+   labels:{fr:['≥12 mois','6-<12 mois','>3-<6 mois','≤3 mois']}},
+  {id:'adt',type:'cat',betas:[0,0.202276],labels:{fr:['Non','Oui']}},
+  {id:'bcr',type:'cat',betas:[0,0.151707],labels:{fr:['>12 mois','≤12 mois']}},
+  {id:'setting',type:'cat',betas:[0,0.338812,0.66751,0.998736],
+   labels:{fr:['Gr.1 — 1ère récidive BCR','Gr.2 — Récidive post-sauvetage','Gr.3 — Persistance PSA (BCP)','Gr.4 — Progression avant 2ème ligne']}}
+];
+var PSMA_VAR_NAMES = {
+  isup:{fr:'ISUP grade'},psa:{fr:'PSA au moment du PET'},psadt:{fr:'Temps de doublement PSA'},
+  adt:{fr:'ADT en cours'},bcr:{fr:'Délai à la récidive biochimique'},setting:{fr:'Situation clinique'}
+};
+var PSMA_VAR_SUBS = {
+  isup:{fr:'Grade histologique'},psa:{fr:'ng/ml'},psadt:{fr:'PSAdt (mois)'},
+  adt:{fr:'Hormonothérapie au moment du PET'},bcr:{fr:'Depuis le traitement primaire'},
+  setting:{fr:"Contexte de l'examen"}
+};
+var PSMA_INTERP = {
+  low:"<strong>Probabilité faible — PET PSMA peu susceptible d'être positif</strong>Avec {p}% de probabilité prédite, ce patient présente un risque faible de positivité du 68Ga-PSMA-11 PET/CT.<div class='stats'>Somme des coefficients : {lp}. Seuil de 40% non atteint.</div>",
+  mid:"<strong>Probabilité intermédiaire — Discussion multidisciplinaire recommandée</strong>Avec {p}% de probabilité prédite, le PET PSMA est en dessous du seuil optimal de 40%. La décision doit tenir compte du contexte clinique global.<div class='stats'>Somme des coefficients : {lp}. Seuil de 40% non atteint.</div>",
+  high:"<strong>Probabilité élevée ≥ 40% — PET PSMA recommandé</strong>Avec {p}% de probabilité prédite, ce patient dépasse le seuil optimal de 40% défini par Ceci et al. Le 68Ga-PSMA-11 PET/CT est recommandé.<div class='stats'>Sensibilité 84.7%, Spécificité 66.2%.</div>",
+  vhigh:"<strong>Probabilité très élevée — PET PSMA fortement recommandé</strong>Avec {p}% de probabilité prédite, ce patient présente un profil à très haute probabilité de positivité. L'examen est fortement recommandé.<div class='stats'>Sensibilité 84.7%, VPN 80.5%.</div>"
+};
+var psmaSelected = {};
+
+function psmaBuildNomo(){
+  var grid=document.getElementById('nomo-grid');
+  if(!grid)return;
+  grid.innerHTML='';
+  PSMA_VARS.forEach(function(v,vi){
+    var lbl=document.createElement('div');
+    lbl.className='nomo-label';
+    lbl.innerHTML=(PSMA_VAR_NAMES[v.id][_psmaLang]||v.id)+'<span class="sublabel">'+(PSMA_VAR_SUBS[v.id][_psmaLang]||'')+'</span>';
+    grid.appendChild(lbl);
+    var main=document.createElement('div');
+    if(v.type==='slider'||v.type==='psa_step'){
+      var sr=document.createElement('div');sr.className='slider-row no-print';
+      var sl=document.createElement('input');
+      sl.type='range';sl.min=v.sliderMin;sl.max=v.sliderMax;sl.step=v.sliderStep;
+      sl.value=v.id==='psadt'?12:v.sliderMin;sl.id='sl-'+v.id;
+      sl.oninput=(function(vd){return function(){psmaOnSlider(vd);};})(v);
+      sr.appendChild(sl);
+      var sv=document.createElement('div');sv.className='slider-val';
+      sv.innerHTML='<span id="sv-'+v.id+'">—</span> <span class="sv-unit">'+(v.sliderUnit||'')+'</span>';
+      sr.appendChild(sv);main.appendChild(sr);
+    }
+    var bw=document.createElement('div');bw.style.cssText='margin-bottom:.4rem;';
+    var bb=document.createElement('div');bb.className='nomo-bar-bg';
+    var bf=document.createElement('div');bf.className='nomo-bar-fill';bf.id='bar-'+v.id;
+    bb.appendChild(bf);bw.appendChild(bb);main.appendChild(bw);
+    if(v.type!=='continuous'&&v.type!=='psa_step'){
+      var btns=document.createElement('div');btns.className='cat-btns';btns.id='btns-'+v.id;
+      v.betas.forEach(function(beta,ci){
+        var btn=document.createElement('button');btn.className='cat-btn';btn.id='btn-'+v.id+'-'+ci;
+        var catLabel=v.labels[_psmaLang]?v.labels[_psmaLang][ci]:('Cat '+ci);
+        btn.innerHTML=catLabel+'<br><small>'+(beta===0?'0':'+'+beta.toFixed(2))+'</small>';
+        btn.onclick=(function(id,idx,b){return function(){psmaSelectCat(id,idx,b,this);};})(v.id,ci,beta);
+        btns.appendChild(btn);
+      });
+      main.appendChild(btns);
+    }
+    grid.appendChild(main);
+    var pc=document.createElement('div');pc.className='nomo-pts-col';
+    pc.innerHTML='<span class="nomo-pts-val" id="pts-'+v.id+'">—</span><span class="nomo-pts-unit">beta</span>';
+    grid.appendChild(pc);
+    if(vi<PSMA_VARS.length-1){var dv=document.createElement('div');dv.className='nomo-divider';grid.appendChild(dv);}
+  });
+}
+
+function psmaSelectCat(varId,catIdx,beta,btnEl){
+  psmaSelected[varId]=catIdx;
+  btnEl.parentElement.querySelectorAll('.cat-btn').forEach(function(b){b.classList.remove('active','active-warn');});
+  btnEl.classList.add(beta>=2.0?'active-warn':'active');
+  var v=PSMA_VARS.find(function(x){return x.id===varId;});
+  var maxB=Math.max.apply(null,v.betas);
+  var pct=maxB>0?(beta/maxB*100):0;
+  document.getElementById('bar-'+varId).style.width=pct+'%';
+  document.getElementById('pts-'+varId).textContent=beta.toFixed(3);
+  if(varId==='adt'||varId==='bcr')document.getElementById('warn-minor').style.display='block';
+  psmaCalcResult();
+}
+
+function psmaOnSlider(varDef){
+  var val=parseFloat(document.getElementById('sl-'+varDef.id).value);
+  document.getElementById('sv-'+varDef.id).textContent=varDef.id==='psa'?val.toFixed(2):val.toFixed(1);
+  if(varDef.type==='psa_step'){
+    var beta=0;
+    for(var i=0;i<varDef.psaSteps.length;i++){
+      var s=varDef.psaSteps[i];
+      if(s.max===null||(s.inclusive?val<=s.max:val<s.max)){beta=s.beta;break;}
+    }
+    psmaSelected[varDef.id]=val;psmaSelected[varDef.id+'_beta']=beta;
+    var maxB=varDef.psaSteps[varDef.psaSteps.length-1].beta;
+    document.getElementById('bar-'+varDef.id).style.width=(maxB>0?(beta/maxB*100):0)+'%';
+    document.getElementById('pts-'+varDef.id).textContent=beta.toFixed(3);
+    psmaCalcResult();return;
+  }
+  var catIdx;
+  if(varDef.id==='psadt'){
+    if(val<=3)catIdx=3;else if(val<6)catIdx=2;else if(val<12)catIdx=1;else catIdx=0;
+  }
+  var btn=document.getElementById('btn-'+varDef.id+'-'+catIdx);
+  if(btn)psmaSelectCat(varDef.id,catIdx,varDef.betas[catIdx],btn);
+}
+
+function psmaCalcResult(){
+  var allSet=PSMA_VARS.every(function(v){return psmaSelected[v.id]!==undefined;});
+  var sumBeta=0;
+  PSMA_VARS.forEach(function(v){
+    if(psmaSelected[v.id]!==undefined){
+      if(v.type==='psa_step')sumBeta+=psmaSelected[v.id+'_beta']||0;
+      else sumBeta+=v.betas[psmaSelected[v.id]];
+    }
+  });
+  var lp=PSMA_INTERCEPT+sumBeta;
+  document.getElementById('total-lp-display').textContent=allSet?sumBeta.toFixed(3):'—';
+  if(!allSet)return;
+  var prob=1/(1+Math.exp(-lp));
+  var probPct=prob*100;
+  var probEl=document.getElementById('prob-value');
+  probEl.textContent=Math.round(probPct)+'%';
+  probEl.className='prob-value '+(probPct<30?'low':probPct<40?'medium':'high');
+  document.getElementById('gauge-needle').style.left=Math.min(98,probPct)+'%';
+  document.getElementById('result-btns').style.display='flex';
+  var icon,cls,tpl;
+  if(probPct<20){icon='✓';cls='low-prob';tpl=PSMA_INTERP.low;}
+  else if(probPct<40){icon='!';cls='mid-prob';tpl=PSMA_INTERP.mid;}
+  else if(probPct<65){icon='✗';cls='high-prob';tpl=PSMA_INTERP.high;}
+  else{icon='✗';cls='high-prob';tpl=PSMA_INTERP.vhigh;}
+  var text=tpl.replace(/\{p\}/g,probPct.toFixed(1)).replace(/\{lp\}/g,sumBeta.toFixed(3));
+  var box=document.getElementById('interp-box');
+  box.className='interp-box '+cls;
+  box.innerHTML='<div class="interp-icon">'+icon+'</div><div class="interp-text">'+text+'</div>';
+  var rows=document.querySelectorAll('#perf-table tbody tr');
+  rows.forEach(function(r){r.classList.remove('active-row');});
+  var thresholds=[10,20,25,30,40,50,60,70,80];
+  var matchIdx=-1;
+  for(var i=thresholds.length-1;i>=0;i--){if(probPct>=thresholds[i]){matchIdx=i;break;}}
+  if(matchIdx>=0)rows[matchIdx].classList.add('active-row');
+}
+
+function psmaResetAll(){
+  psmaSelected={};psmaBuildNomo();
+  document.getElementById('total-lp-display').textContent='—';
+  document.getElementById('prob-value').textContent='—';
+  document.getElementById('prob-value').className='prob-value low';
+  document.getElementById('gauge-needle').style.left='0%';
+  document.getElementById('result-btns').style.display='none';
+  document.getElementById('warn-minor').style.display='none';
+  var box=document.getElementById('interp-box');
+  box.className='interp-box no-sel';
+  box.innerHTML='<div class="interp-icon">i</div><div class="interp-text"><strong>En attente de saisie</strong>Renseignez les 6 paramètres cliniques pour obtenir la probabilité prédite.</div>';
+  var rows=document.querySelectorAll('#perf-table tbody tr');
+  rows.forEach(function(r){r.classList.remove('active-row');});
+  var row40=document.getElementById('perf-row-40');
+  if(row40)row40.classList.add('active-row');
+}
+
+document.addEventListener('DOMContentLoaded',function(){
+  if(document.getElementById('nomo-grid')){
+    psmaBuildNomo();
+    var row40=document.getElementById('perf-row-40');
+    if(row40)row40.classList.add('active-row');
+  }
+});
+})();
+</script>
+
+<!-- ==================== PETVAS / TVS ==================== -->
+<style>
+.petvas-wrap{
+  --pv-surface:#ffffff;--pv-fg:#17212b;--pv-muted:#5b6876;--pv-line:#d9e0e7;
+  --pv-accent:#1f5f8b;--pv-accent-soft:#e3eef6;
+  --pv-g0:#e9edf1;--pv-g0-fg:#46525e;
+  --pv-g1:#fde9b8;--pv-g1-fg:#6b4a00;
+  --pv-g2:#f8b26a;--pv-g2-fg:#5a2a00;
+  --pv-g3:#d9452b;--pv-g3-fg:#ffffff;
+  --pv-warn-bg:#fff6e0;--pv-warn-fg:#6b4a00;
+}
+.petvas-wrap .pv-banner{background:var(--pv-warn-bg);color:var(--pv-warn-fg);border-radius:8px;padding:10px 12px;font-size:.86rem;margin-bottom:16px}
+.petvas-wrap .pv-grid{display:grid;grid-template-columns:minmax(0,1fr) 340px;gap:24px;margin-top:8px;align-items:start}
+@media(max-width:860px){.petvas-wrap .pv-grid{grid-template-columns:minmax(0,1fr)}}
+.petvas-wrap .pv-sheet{background:var(--pv-surface);border:1px solid var(--pv-line);border-radius:10px;overflow:hidden}
+.petvas-wrap .pv-legend{display:flex;flex-wrap:wrap;gap:8px 14px;padding:12px 16px;border-bottom:1px solid var(--pv-line);font-size:.82rem;color:var(--pv-muted)}
+.petvas-wrap .pv-legend span{display:inline-flex;align-items:center;gap:6px}
+.petvas-wrap .pv-sw{width:22px;height:18px;border-radius:4px;display:inline-grid;place-items:center;font-family:"JetBrains Mono",ui-monospace,monospace;font-size:.72rem;font-weight:700}
+.petvas-wrap .pv-group{padding:4px 16px 8px}
+.petvas-wrap .pv-group h3{font-size:.72rem;text-transform:uppercase;letter-spacing:.08em;color:var(--pv-muted);margin:14px 0 4px;font-weight:600;border:none;padding:0}
+.petvas-wrap .pv-row{display:grid;grid-template-columns:minmax(0,1fr) auto auto;gap:10px;align-items:center;padding:7px 0;border-top:1px solid var(--pv-line)}
+.petvas-wrap .pv-group h3+.pv-row{border-top:none}
+.petvas-wrap .pv-name{min-width:0}
+.petvas-wrap .pv-name b{font-weight:600}
+.petvas-wrap .pv-tags{display:flex;gap:4px;flex-wrap:wrap}
+.petvas-wrap .pv-tag{font-size:.66rem;font-weight:700;letter-spacing:.04em;padding:1px 6px;border-radius:99px;border:1px solid var(--pv-line);color:var(--pv-muted);background:none}
+.petvas-wrap .pv-tag.on{background:var(--pv-accent-soft);color:var(--pv-accent);border-color:transparent}
+.petvas-wrap .pv-seg{display:inline-flex;border:1px solid var(--pv-line);border-radius:7px;overflow:hidden}
+.petvas-wrap .pv-seg button{all:unset;cursor:pointer;width:38px;height:32px;display:grid;place-items:center;font-family:"JetBrains Mono",ui-monospace,monospace;font-weight:700;font-size:.9rem;color:var(--pv-muted);background:var(--pv-surface);border-left:1px solid var(--pv-line)}
+.petvas-wrap .pv-seg button:first-child{border-left:none}
+.petvas-wrap .pv-seg button:hover{background:var(--pv-accent-soft)}
+.petvas-wrap .pv-seg button:focus-visible{outline:2px solid var(--pv-accent);outline-offset:-2px}
+.petvas-wrap .pv-seg button[aria-pressed="true"][data-g="0"]{background:var(--pv-g0);color:var(--pv-g0-fg)}
+.petvas-wrap .pv-seg button[aria-pressed="true"][data-g="1"]{background:var(--pv-g1);color:var(--pv-g1-fg)}
+.petvas-wrap .pv-seg button[aria-pressed="true"][data-g="2"]{background:var(--pv-g2);color:var(--pv-g2-fg)}
+.petvas-wrap .pv-seg button[aria-pressed="true"][data-g="3"]{background:var(--pv-g3);color:var(--pv-g3-fg)}
+@media(max-width:520px){
+  .petvas-wrap .pv-row{grid-template-columns:minmax(0,1fr) auto}
+  .petvas-wrap .pv-row .pv-tags{grid-column:1;grid-row:2}
+  .petvas-wrap .pv-seg{grid-row:1/3;grid-column:2}
+  .petvas-wrap .pv-seg button{width:34px}
+}
+.petvas-wrap aside{position:sticky;top:calc(env(safe-area-inset-top,0px)+16px);display:flex;flex-direction:column;gap:14px}
+.petvas-wrap .pv-card{background:var(--pv-surface);border:1px solid var(--pv-line);border-radius:10px;padding:16px}
+.petvas-wrap .pv-score{display:flex;justify-content:space-between;align-items:baseline;gap:8px}
+.petvas-wrap .pv-score .pv-lbl{font-weight:600}
+.petvas-wrap .pv-score .pv-lbl small{display:block;font-weight:400;color:var(--pv-muted);font-size:.78rem}
+.petvas-wrap .pv-score .pv-val{font-family:"JetBrains Mono",ui-monospace,monospace;font-size:2rem;font-weight:700;font-variant-numeric:tabular-nums;line-height:1}
+.petvas-wrap .pv-score .pv-val small{font-size:.95rem;color:var(--pv-muted);font-weight:500}
+.petvas-wrap .pv-bar{height:6px;border-radius:99px;background:var(--pv-g0);margin:10px 0 8px;overflow:hidden}
+.petvas-wrap .pv-bar i{display:block;height:100%;background:var(--pv-accent);width:0;transition:width .2s}
+.petvas-wrap .pv-note{font-size:.84rem;color:var(--pv-muted);margin:0}
+.petvas-wrap .pv-pill{display:inline-block;font-size:.74rem;font-weight:700;padding:2px 8px;border-radius:99px;margin-top:4px}
+.petvas-wrap .pv-pill.neg{background:var(--pv-g0);color:var(--pv-g0-fg)}
+.petvas-wrap .pv-pill.pos{background:var(--pv-g2);color:var(--pv-g2-fg)}
+.petvas-wrap .pv-pill.act{background:var(--pv-g3);color:var(--pv-g3-fg)}
+.petvas-wrap .pv-counts{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;text-align:center;font-family:"JetBrains Mono",ui-monospace,monospace;font-variant-numeric:tabular-nums}
+.petvas-wrap .pv-counts div{border-radius:6px;padding:6px 0;font-weight:700}
+.petvas-wrap .pv-counts small{display:block;font-family:inherit;font-weight:500;font-size:.68rem;opacity:.85}
+.petvas-wrap .pv-actions{display:flex;gap:8px;flex-wrap:wrap}
+.petvas-wrap .pv-btn{font:inherit;font-weight:600;font-size:.88rem;padding:8px 12px;border-radius:7px;border:1px solid var(--pv-line);background:var(--pv-surface);color:var(--pv-fg);cursor:pointer}
+.petvas-wrap .pv-btn.primary{background:var(--pv-accent);color:#fff;border-color:var(--pv-accent)}
+.petvas-wrap .pv-btn:focus-visible{outline:2px solid var(--pv-accent);outline-offset:2px}
+.petvas-wrap textarea{width:100%;min-height:96px;font-family:"JetBrains Mono",ui-monospace,monospace;font-size:.78rem;border:1px solid var(--pv-line);border-radius:7px;padding:8px;background:var(--bg);color:var(--pv-fg);resize:vertical}
+.petvas-wrap .pv-ref{margin-top:24px;display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:16px}
+.petvas-wrap .pv-ref h3{font-size:.95rem;margin:0 0 6px;border:none;padding:0;color:var(--pv-fg)}
+.petvas-wrap .pv-ref ul{margin:0;padding-left:18px;font-size:.86rem;color:var(--pv-muted)}
+.petvas-wrap .pv-ref li{margin-bottom:4px}
+.petvas-wrap .pv-ref li b{color:var(--pv-fg);font-weight:600}
+.petvas-wrap .pv-footer{margin-top:24px;font-size:.78rem;color:var(--pv-muted)}
+@media(prefers-reduced-motion:reduce){.petvas-wrap .pv-bar i{transition:none}}
+</style>
+
+<div id="mod-petvas" class="module">
+  <h2>PETVAS &amp; TVS — Vascularite des grands vaisseaux</h2>
+  <p class="description">Cotez chaque territoire de 0 à 3 par rapport au foie. Le PETVAS (9 territoires, 0–27) et le TVS à 14 territoires (Meller, 0–42) se calculent en même temps.</p>
+
+  <div class="petvas-wrap">
+    <div class="pv-banner" id="pvExampleBanner">Exemple pré-rempli (patient fictif). Cliquez sur « Remettre à zéro » pour coter votre patient.</div>
+
+    <div class="pv-grid">
+      <section class="pv-sheet" aria-label="Fiche de cotation">
+        <div class="pv-legend">
+          <span><i class="pv-sw" style="background:var(--pv-g0);color:var(--pv-g0-fg)">0</i>Pas de fixation (&lt; pool sanguin)</span>
+          <span><i class="pv-sw" style="background:var(--pv-g1);color:var(--pv-g1-fg)">1</i>&lt; foie</span>
+          <span><i class="pv-sw" style="background:var(--pv-g2);color:var(--pv-g2-fg)">2</i>= foie · vascularite possible</span>
+          <span><i class="pv-sw" style="background:var(--pv-g3);color:var(--pv-g3-fg)">3</i>&gt; foie · vascularite active</span>
+        </div>
+        <div id="pvSheet"></div>
+      </section>
+
+      <aside>
+        <div class="pv-card">
+          <div class="pv-score">
+            <div class="pv-lbl">PETVAS<small>9 territoires · Grayson 2018</small></div>
+            <div class="pv-val"><span id="pvPetvas">0</span><small> / 27</small></div>
+          </div>
+          <div class="pv-bar"><i id="pvPetvasBar"></i></div>
+          <p class="pv-note" id="pvPetvasNote"></p>
+        </div>
+        <div class="pv-card">
+          <div class="pv-score">
+            <div class="pv-lbl">TVS<small>14 territoires · Meller 2003</small></div>
+            <div class="pv-val"><span id="pvTvs">0</span><small> / 42</small></div>
+          </div>
+          <div class="pv-bar"><i id="pvTvsBar"></i></div>
+          <p class="pv-note" id="pvTvsNote"></p>
+        </div>
+        <div class="pv-card">
+          <div class="pv-score"><div class="pv-lbl">Territoires par grade<small>15 territoires uniques</small></div></div>
+          <div class="pv-counts" id="pvCounts" style="margin-top:10px"></div>
+          <p class="pv-note" style="margin-top:10px" id="pvPosNote"></p>
+        </div>
+        <div class="pv-card">
+          <div class="pv-actions">
+            <button class="pv-btn primary" id="pvCopyBtn" type="button">Copier pour le compte rendu</button>
+            <button class="pv-btn" id="pvResetBtn" type="button">Remettre à zéro</button>
+          </div>
+          <label for="pvReport" class="pv-note" style="display:block;margin:10px 0 4px">Texte généré</label>
+          <textarea id="pvReport" readonly></textarea>
+          <p class="pv-note" id="pvCopyMsg" aria-live="polite"></p>
+        </div>
+      </aside>
+    </div>
+
+    <section class="pv-ref" aria-label="Repères d'interprétation">
+      <div class="pv-card">
+        <h3>Lecture d'un territoire</h3>
+        <ul>
+          <li><b>Grade 3</b> : positif pour une vascularite active (EANM/SNMMI 2018).</li>
+          <li><b>Grade 2</b> : vascularite possible. La plupart des études considèrent la TEP positive dès le grade 2.</li>
+          <li><b>Grades 0–1</b> : négatif.</li>
+          <li>Prudence aux iliaques et fémorales : l'athérome donne des faux positifs.</li>
+        </ul>
+      </div>
+      <div class="pv-card">
+        <h3>Seuils publiés</h3>
+        <ul>
+          <li><b>PETVAS ≥ 10</b> : maladie active vs inactive, sensibilité 60 %, spécificité 80 % (Galli 2022).</li>
+          <li><b>PETVAS ≥ 20</b> : rechute plus fréquente (Grayson 2018, cohorte mixte ACG + Takayasu). Non confirmé par Galli 2022 ni Billet 2024.</li>
+          <li><b>TVS</b> : pas de seuil diagnostique validé. Un TVS élevé au diagnostic est associé à la progression de l'aorte thoracique (Moreel 2023).</li>
+        </ul>
+      </div>
+      <div class="pv-card">
+        <h3>Conditions de validité</h3>
+        <ul>
+          <li>Acquisition à 60 min minimum, idéalement 90–120 min (EULAR 2023).</li>
+          <li>Glycémie &lt; 7 mmol/L souhaitée, &lt; 10 mmol/L acceptable.</li>
+          <li>Idéalement avant ou dans les 3 jours suivant le début des corticoïdes.</li>
+          <li>En rémission, une fixation résiduelle ne prédit pas la rechute : ne pas l'utiliser seule pour guider le traitement.</li>
+        </ul>
+      </div>
+    </section>
+
+    <p class="pv-footer">Sources : Thibault T et al., Front Med 2024;11:1469964 · Grayson PC et al., Arthritis Rheumatol 2018;70:439–49 · Meller J et al., EJNMMI 2003;30:730–6 · Galli E et al., Rheumatology 2022;61:4809–16 · Slart RHJA et al., EJNMMI 2018;45:1250–69 · Dejaco C et al., Ann Rheum Dis 2024;83:741–51. Outil d'aide au calcul, ne remplace pas l'interprétation clinique.</p>
+  </div>
+</div>
+
+<script>
+(function(){
+'use strict';
+const PV_T=[
+  {g:"Aorte",id:"aasc",n:"Aorte ascendante",p:1,t:1},
+  {g:"Aorte",id:"arch",n:"Crosse aortique",p:1,t:1},
+  {g:"Aorte",id:"adesc",n:"Aorte thoracique descendante",p:1,t:1},
+  {g:"Aorte",id:"aabd",n:"Aorte abdominale",p:1,t:1},
+  {g:"Troncs supra-aortiques",id:"tbc",n:"Tronc brachiocéphalique",p:1,t:0},
+  {g:"Troncs supra-aortiques",id:"carD",n:"Carotide droite",p:1,t:1},
+  {g:"Troncs supra-aortiques",id:"carG",n:"Carotide gauche",p:1,t:1},
+  {g:"Troncs supra-aortiques",id:"scD",n:"Sous-clavière droite",p:1,t:1},
+  {g:"Troncs supra-aortiques",id:"scG",n:"Sous-clavière gauche",p:1,t:1},
+  {g:"Membres supérieurs",id:"axD",n:"Axillaire droite",p:0,t:1},
+  {g:"Membres supérieurs",id:"axG",n:"Axillaire gauche",p:0,t:1},
+  {g:"Membres inférieurs",id:"ilD",n:"Iliaque droite",p:0,t:1},
+  {g:"Membres inférieurs",id:"ilG",n:"Iliaque gauche",p:0,t:1},
+  {g:"Membres inférieurs",id:"feD",n:"Fémorale droite",p:0,t:1},
+  {g:"Membres inférieurs",id:"feG",n:"Fémorale gauche",p:0,t:1}
+];
+const PV_EX={aasc:3,arch:2,adesc:2,aabd:2,tbc:1,carD:1,carG:1,scD:3,scG:3,axD:3,axG:2,ilD:1,ilG:1,feD:1,feG:0};
+const PV_S={};
+PV_T.forEach(x=>PV_S[x.id]=PV_EX[x.id]??0);
+
+const pvSheet=document.getElementById("pvSheet");
+let pvCur=null,pvBox=null;
+PV_T.forEach(x=>{
+  if(x.g!==pvCur){pvCur=x.g;pvBox=document.createElement("div");pvBox.className="pv-group";pvBox.innerHTML=`<h3>${x.g}</h3>`;pvSheet.appendChild(pvBox);}
+  const r=document.createElement("div");r.className="pv-row";
+  r.innerHTML=`<div class="pv-name"><b>${x.n}</b></div>
+   <div class="pv-tags"><span class="pv-tag ${x.p?'on':''}">PETVAS</span><span class="pv-tag ${x.t?'on':''}">TVS</span></div>
+   <div class="pv-seg" role="group" aria-label="Grade ${x.n}">${[0,1,2,3].map(g=>`<button type="button" id="pvb-${x.id}-${g}" data-id="${x.id}" data-g="${g}" aria-pressed="false">${g}</button>`).join("")}</div>`;
+  pvBox.appendChild(r);
+});
+
+pvSheet.addEventListener("click",e=>{
+  const b=e.target.closest("button[data-id]");if(!b)return;
+  PV_S[b.dataset.id]=+b.dataset.g;
+  document.getElementById("pvExampleBanner").hidden=true;
+  pvRender();
+});
+
+function pvSum(k){return PV_T.filter(x=>x[k]).reduce((a,x)=>a+PV_S[x.id],0);}
+function pvPill(cls,txt){return `<span class="pv-pill ${cls}">${txt}</span>`;}
+function pvRender(){
+  PV_T.forEach(x=>[0,1,2,3].forEach(g=>document.getElementById(`pvb-${x.id}-${g}`).setAttribute("aria-pressed",PV_S[x.id]===g)));
+  const p=pvSum("p"),t=pvSum("t");
+  document.getElementById("pvPetvas").textContent=p;
+  document.getElementById("pvTvs").textContent=t;
+  document.getElementById("pvPetvasBar").style.width=(p/27*100)+"%";
+  document.getElementById("pvTvsBar").style.width=(t/42*100)+"%";
+  let pn;
+  if(p>=20) pn=pvPill("act","≥ 20")+" Au-dessus du seuil de rechute de Grayson 2018 (valeur prédictive non confirmée depuis).";
+  else if(p>=10) pn=pvPill("pos","≥ 10")+" Au-dessus du seuil d'activité de Galli 2022 (Se 60 %, Sp 80 %).";
+  else pn=pvPill("neg","< 10")+" Sous le seuil d'activité de Galli 2022.";
+  document.getElementById("pvPetvasNote").innerHTML=pn;
+  document.getElementById("pvTvsNote").textContent="Pas de seuil validé. À suivre en valeur relative d'un examen à l'autre.";
+  const c=[0,0,0,0];PV_T.forEach(x=>c[PV_S[x.id]]++);
+  document.getElementById("pvCounts").innerHTML=c.map((n,g)=>`<div style="background:var(--pv-g${g});color:var(--pv-g${g}-fg)">${n}<small>grade ${g}</small></div>`).join("");
+  const act=PV_T.filter(x=>PV_S[x.id]===3).map(x=>x.n.toLowerCase());
+  const pos=PV_T.filter(x=>PV_S[x.id]===2).map(x=>x.n.toLowerCase());
+  document.getElementById("pvPosNote").innerHTML=act.length?pvPill("act","TEP positive")+" Au moins un territoire de grade 3.":pos.length?pvPill("pos","Vascularite possible")+" Au moins un grade 2, aucun grade 3.":pvPill("neg","TEP négative")+" Aucun territoire ≥ 2.";
+  const line=g=>PV_T.filter(x=>PV_S[x.id]===g).map(x=>x.n.toLowerCase()).join(", ")||"aucun";
+  document.getElementById("pvReport").value=
+`Cotation visuelle de la fixation vasculaire (référence hépatique, grades 0–3).
+PETVAS = ${p}/27. TVS (14 territoires, Meller) = ${t}/42.
+Grade 3 (> foie) : ${line(3)}.
+Grade 2 (= foie) : ${line(2)}.
+Grade 1 (< foie) : ${line(1)}.`;
+}
+document.getElementById("pvResetBtn").addEventListener("click",()=>{PV_T.forEach(x=>PV_S[x.id]=0);document.getElementById("pvExampleBanner").hidden=true;document.getElementById("pvCopyMsg").textContent="";pvRender();});
+document.getElementById("pvCopyBtn").addEventListener("click",()=>{
+  const ta=document.getElementById("pvReport"),m=document.getElementById("pvCopyMsg");
+  navigator.clipboard.writeText(ta.value).then(()=>m.textContent="Texte copié.").catch(()=>{ta.focus();ta.select();m.textContent="Texte sélectionné : copiez-le avec Ctrl+C ou ⌘C.";});
+});
+pvRender();
+})();
 </script>
 
 <footer style="text-align:center; padding:1.2rem 1rem 1rem; margin-top:1.5rem; font-size:0.7rem; color:var(--text-light); line-height:1.5; border-top:1px solid #e0e0e0;">
